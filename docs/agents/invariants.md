@@ -36,3 +36,14 @@ acá solo lo que el frontend puede romper por su cuenta.
   se muestran en la zona horaria del negocio con una única función.
 - **Por qué:** un redondeo o un corrimiento de un día en la hoja del fin de semana es un pedido que sale mal.
 - **Auditor:** integridad
+
+## INV-FE-06 — Estado con un solo dueño y efectos encerrados
+
+- **Regla:** `useEffect` y `useLayoutEffect` solo existen en `src/lib/effects/`, como hooks con nombre que
+  sincronizan con un sistema externo. Los datos del servidor viven en React Query, los filtros en la URL, los
+  formularios en react-hook-form, y `useState` solo guarda estado efímero de UI (`docs/architecture.md` §5 y §6).
+- **Por qué:** un efecto que pide datos o sincroniza estados duplica la verdad, y la pantalla termina mostrando
+  algo distinto de lo que dijo la API.
+- **Cómo se verifica:** regla de ESLint contra los efectos fuera de `src/lib/effects/`; checklist de
+  `docs/architecture.md` en cada revisión.
+- **Auditor:** estándares
