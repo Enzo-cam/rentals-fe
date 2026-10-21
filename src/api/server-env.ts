@@ -1,0 +1,64 @@
+export type ServerEnv = {
+  apiUrl: string;
+  originSecret: string;
+  frontOrigin: string;
+};
+
+const VARIABLES = {
+  apiUrl: "API_URL",
+  originSecret: "ORIGIN_SECRET",
+  frontOrigin: "FRONT_ORIGIN",
+} as const;
+
+export class ServerEnvError extends Error {
+  constructor(
+    readonly variable: string,
+    readonly problem: "missing" | "invalid",
+  ) {
+    super(
+      `${problem === "missing" ? "Missing" : "Invalid"} server environment variable: ${variable}`,
+    );
+    this.name = "ServerEnvError";
+  }
+}
+
+function parseUrl(value: string): URL | undefined {
+  try {
+    return new URL(value);
+  } catch {
+    return undefined;
+  }
+}
+
+/** API_URL rejects any query or fragment, even a bare "?" or "#", because request paths are appended to it. */
+function validate(key: keyof ServerEnv, value: string): string | undefined {
+  switch (key) {
+    case "apiUrl": {
+      const url = parseUrl(value);
+      const isHttp = url?.protocol === "http:" || url?.protocol === "https:";
+      const hasQueryOrHash = !!url?.search || !!url?.hash || /[?#]/.test(value);
+      return isHttp && !hasQueryOrHash ? value.replace(/\/+$/, "") : undefined;
+    }
+    case "frontOrigin":
+      return parseUrl(value)?.origin === value ? value : undefined;
+    case "originSecret":
+      return value;
+  }
+}
+
+/** Errors name the variable, never its value (INV-FE-04). */
+export function parseServerEnv<K extends keyof ServerEnv = keyof ServerEnv>(
+  env: Record<string, string | undefined>,
+  keys: readonly K[] = Object.keys(VARIABLES) as K[],
+): Pick<ServerEnv, K> {
+  const parsed = {} as Pick<ServerEnv, K>;
+  for (const key of keys) {
+    const name = VARIABLES[key];
+    const raw = env[name]?.trim();
+    if (!raw) throw new ServerEnvError(name, "missing");
+    const value = validate(key, raw);
+    if (value === undefined) throw new ServerEnvError(name, "invalid");
+    parsed[key] = value as ServerEnv[K];
+  }
+  return parsed;
+}

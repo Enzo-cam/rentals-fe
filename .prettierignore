@@ -1,0 +1,9 @@
+pnpm-lock.yaml
+src/api/schema.d.ts
+src/api/openapi.json
+src/components/ui/**
+.next/
+playwright-report/
+test-results/
+# Prose docs are wrapped by hand; Prettier checks code only.
+*.md
