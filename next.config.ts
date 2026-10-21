@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
+/** `agentRules: false`: `next dev` would rewrite the hand-written AGENTS.md. The CSP is only anti-framing for now. */
 const nextConfig: NextConfig = {
   poweredByHeader: false,
-  // The repo's AGENTS.md is hand-written; `next dev` must not rewrite it.
   agentRules: false,
   async headers() {
     return [
@@ -10,7 +10,6 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
-          // Only anti-framing for now, not a full CSP.
           { key: "Content-Security-Policy", value: "frame-ancestors 'none'" },
           {
             key: "Referrer-Policy",

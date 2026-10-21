@@ -4,7 +4,7 @@ import { ApiStatus } from "@/features/health";
 
 export const dynamic = "force-dynamic";
 
-// noindex and no canonical, sitemap or robots on purpose until the landing exists.
+/** noindex and no canonical, sitemap or robots on purpose until the landing exists. */
 export const metadata: Metadata = {
   title: "Rentals: estado del sistema",
   description:

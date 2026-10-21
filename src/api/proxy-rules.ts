@@ -1,6 +1,6 @@
 import { isIP } from "node:net";
 
-/** Headers the proxy forwards to the API (ADR-0001). Everything else is dropped. */
+/** @see docs/adr/0001-sesion-y-proxy-bff.md */
 const REQUEST_HEADER_ALLOWLIST = [
   "cookie",
   "content-type",
@@ -10,7 +10,6 @@ const REQUEST_HEADER_ALLOWLIST = [
   "user-agent",
 ] as const;
 
-/** Headers the proxy returns to the browser, besides every `set-cookie`. */
 const RESPONSE_HEADER_ALLOWLIST = [
   "content-type",
   "cache-control",
@@ -28,7 +27,7 @@ export function pickRequestHeaders(source: Headers): Headers {
   return picked;
 }
 
-/** Allowlisted headers and every `set-cookie`; without `cache-control`, `no-store`. */
+/** Defaults to `no-store` so a per-session answer is never cached when the API says nothing. */
 export function pickResponseHeaders(source: Headers): Headers {
   const picked = new Headers();
   for (const name of RESPONSE_HEADER_ALLOWLIST) {
@@ -42,10 +41,7 @@ export function pickResponseHeaders(source: Headers): Headers {
   return picked;
 }
 
-/**
- * CSRF check: GET and HEAD always pass. A mutation passes only if its Origin is
- * the front's own origin or, without Origin, if `Sec-Fetch-Site: same-origin`.
- */
+/** @see docs/adr/0001-sesion-y-proxy-bff.md (CSRF) */
 export function passesCsrfCheck(
   method: string,
   origin: string | null,
@@ -57,11 +53,7 @@ export function passesCsrfCheck(
   return secFetchSite === "same-origin";
 }
 
-/**
- * Rightmost X-Forwarded-For entry, if it is an IP. Trusting it assumes the
- * hosting edge overwrites or appends that entry itself: pending until the
- * hosting is chosen.
- */
+/** Trusting the rightmost entry assumes the hosting edge sets it: pending until hosting is chosen. */
 export function clientIpFrom(headers: Headers): string | undefined {
   const last = headers.get("x-forwarded-for")?.split(",").at(-1)?.trim();
   return last && isIP(last) !== 0 ? last : undefined;

@@ -1,5 +1,3 @@
-// Fails if src/api/schema.d.ts is not what openapi-typescript generates from
-// src/api/openapi.json (`pnpm api:check`). Does not need rentals-be.
 import { execSync } from "node:child_process";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

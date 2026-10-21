@@ -46,7 +46,6 @@ for (const mode of ["reset", "hang", "notfound", "badbody"] as HealthMode[]) {
     expect(response?.status()).toBe(200);
     await expect(page.getByRole("status")).toHaveText(UNREACHABLE);
     if (mode === "hang") {
-      // The health call gives up after 3 s instead of waiting for the API.
       expect(elapsed).toBeGreaterThanOrEqual(3000);
       expect(elapsed).toBeLessThan(8000);
     }

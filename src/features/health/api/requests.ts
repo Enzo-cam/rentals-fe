@@ -5,6 +5,7 @@ import { toApiStatus, type HealthResult } from "./to-api-status";
 
 const HEALTH_TIMEOUT_MS = 3000;
 
+/** Logs only the error name: undici messages can carry API_URL (INV-FE-04). */
 export async function getApiHealth(): Promise<ApiHealth> {
   let result: HealthResult;
   let failure: string | undefined;
@@ -15,7 +16,6 @@ export async function getApiHealth(): Promise<ApiHealth> {
     });
     result = { status: response.status, body: data ?? error };
   } catch (error) {
-    // Only the name: messages can carry API_URL.
     failure =
       error instanceof Error || error instanceof DOMException
         ? error.name

@@ -8,10 +8,7 @@ import { parseServerEnv } from "./server-env";
 
 export { proxyToApi } from "./bff-proxy";
 
-/**
- * Typed API client for Server Components (ADR-0001): calls API_URL directly,
- * with X-Origin-Secret and the cookie of the current request.
- */
+/** @see docs/adr/0001-sesion-y-proxy-bff.md (Server Components) */
 export async function getApiClient() {
   const env = parseServerEnv(process.env, ["apiUrl", "originSecret"]);
   const cookie = (await cookies()).toString();

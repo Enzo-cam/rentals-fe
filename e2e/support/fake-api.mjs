@@ -1,6 +1,3 @@
-// Fake rentals-be API for Playwright. The network that leaves the Next server
-// (Server Components and the proxy) cannot be intercepted with page.route, so
-// the tests point API_URL here and drive it through /__control/*.
 import { createServer } from "node:http";
 
 const PORT = Number(process.env.FAKE_API_PORT ?? 4010);
@@ -66,6 +63,7 @@ function health(req, res) {
   }
 }
 
+/** @see docs/architecture.md §9 (network that leaves the Next server) */
 const server = createServer(async (req, res) => {
   const url = new URL(req.url ?? "/", `http://${req.headers.host}`);
   const path = url.pathname;

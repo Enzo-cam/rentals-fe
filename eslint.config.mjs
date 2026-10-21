@@ -8,13 +8,10 @@ const EFFECTS_MESSAGE =
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  /** INV-FE-06 with selectors: no-restricted-imports' importNames also rejects `import * as React` (shadcn/ui). */
   {
-    // INV-FE-06: effects are fenced into src/lib/effects/.
     files: ["src/**/*.{ts,tsx,js,jsx,mjs,cjs}"],
     ignores: ["src/lib/effects/**"],
-    // Selectors instead of no-restricted-imports' importNames, which also
-    // rejects `import * as React from "react"` (used by shadcn/ui); the
-    // namespace case is covered by the MemberExpression selector.
     rules: {
       "no-restricted-syntax": [
         "error",
@@ -24,7 +21,6 @@ const eslintConfig = defineConfig([
           message: EFFECTS_MESSAGE,
         },
         {
-          // String-named import: import { "useEffect" as x } from "react"
           selector:
             "ImportDeclaration[source.value='react'] > ImportSpecifier[imported.value=/^(useEffect|useLayoutEffect)$/]",
           message: EFFECTS_MESSAGE,

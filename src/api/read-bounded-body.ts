@@ -4,11 +4,6 @@ export type BodyReadResult =
   | { kind: "bad_body" }
   | { kind: "timeout" };
 
-/**
- * Reads a request body with a size cap and an overall deadline. Stops (and
- * cancels the stream) as soon as the cap is passed, the deadline expires or
- * the client breaks the stream.
- */
 export async function readBoundedBody(
   stream: ReadableStream<Uint8Array<ArrayBuffer>>,
   maxBytes: number,

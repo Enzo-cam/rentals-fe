@@ -6,8 +6,7 @@ import {
   FRONT_ORIGIN,
 } from "./e2e/support/env";
 
-// Runs against `next start`: build first (`pnpm build`). One worker
-// (docs/agents/commands.md): the fake API holds global state.
+/** Runs against `next start` (build first); one worker because the fake API holds global state. */
 export default defineConfig({
   testDir: "e2e",
   workers: 1,

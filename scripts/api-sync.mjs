@@ -1,8 +1,9 @@
-// Copies the OpenAPI contract published by rentals-be, records where it came
-// from and regenerates the typed client (`pnpm api:sync`).
 import { execFileSync } from "node:child_process";
 import { copyFileSync, existsSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+
+/** Same generation as `pnpm api:gen`, run with this Node so Windows needs no shell. */
+const OPENAPI_TYPESCRIPT_CLI = "node_modules/openapi-typescript/bin/cli.js";
 
 const backendDir = resolve(process.env.RENTALS_BE_DIR ?? "../rentals-be");
 const source = resolve(backendDir, "openapi.json");
@@ -23,15 +24,9 @@ writeFileSync(
   "src/api/openapi.source.json",
   `${JSON.stringify({ repo: "rentals-be", commit, dirty }, null, 2)}\n`,
 );
-// Same generation as `pnpm api:gen`, run with this Node (no shell needed on Windows).
 execFileSync(
   process.execPath,
-  [
-    "node_modules/openapi-typescript/bin/cli.js",
-    "src/api/openapi.json",
-    "-o",
-    "src/api/schema.d.ts",
-  ],
+  [OPENAPI_TYPESCRIPT_CLI, "src/api/openapi.json", "-o", "src/api/schema.d.ts"],
   { stdio: "inherit" },
 );
 

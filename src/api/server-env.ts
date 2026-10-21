@@ -30,13 +30,12 @@ function parseUrl(value: string): URL | undefined {
   }
 }
 
-/** Normalized value, or undefined if it is not valid for that setting. */
+/** API_URL rejects any query or fragment, even a bare "?" or "#", because request paths are appended to it. */
 function validate(key: keyof ServerEnv, value: string): string | undefined {
   switch (key) {
     case "apiUrl": {
       const url = parseUrl(value);
       const isHttp = url?.protocol === "http:" || url?.protocol === "https:";
-      // Paths are appended to it: no query or fragment (also a bare "?" or "#").
       const hasQueryOrHash = !!url?.search || !!url?.hash || /[?#]/.test(value);
       return isHttp && !hasQueryOrHash ? value.replace(/\/+$/, "") : undefined;
     }
@@ -47,10 +46,7 @@ function validate(key: keyof ServerEnv, value: string): string | undefined {
   }
 }
 
-/**
- * Reads the requested server-only settings (all of them by default). The error
- * names the missing or invalid variable, never a value.
- */
+/** Errors name the variable, never its value (INV-FE-04). */
 export function parseServerEnv<K extends keyof ServerEnv = keyof ServerEnv>(
   env: Record<string, string | undefined>,
   keys: readonly K[] = Object.keys(VARIABLES) as K[],

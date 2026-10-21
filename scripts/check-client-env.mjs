@@ -1,13 +1,10 @@
-// AC-9 / INV-FE-04: no NEXT_PUBLIC_* variable may carry a secret or the API
-// URL, and the server-only values never reach the browser bundle
-// (`pnpm check:client-env`, after `pnpm build`).
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const PUBLIC_ENV = /NEXT_PUBLIC_[A-Z0-9_]*/g;
 
-/** Names of NEXT_PUBLIC_* variables in `text` that contain SECRET or API_URL. */
+/** @see INV-FE-04 */
 export function findForbiddenPublicEnv(text) {
   const names = text.match(PUBLIC_ENV) ?? [];
   return [
@@ -25,9 +22,9 @@ function listFiles(path) {
   return readdirSync(path).flatMap((entry) => listFiles(join(path, entry)));
 }
 
+/** Loads .env.local before the name check so a NEXT_PUBLIC_* defined only there is caught. */
 function main() {
   const problems = [];
-  // Load before the name check: a NEXT_PUBLIC_* defined only in .env.local counts too.
   if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 
   for (const file of [...listFiles("src"), "next.config.ts", ".env.example"]) {

@@ -15,13 +15,12 @@ const DOT_COLORS: Record<ApiHealth, string> = {
   unreachable: "bg-red-600",
 };
 
-/** Server Component: asks the API for /health and says the result in words. */
+/** CardTitle renders a div, so the h2 inside makes the title a real heading. */
 export async function ApiStatus() {
   const health = await getApiHealth();
   return (
     <Card>
       <CardHeader>
-        {/* CardTitle is a div; the h2 inside makes it a real heading (styles inherit via preflight). */}
         <CardTitle>
           <h2>Estado de la API</h2>
         </CardTitle>

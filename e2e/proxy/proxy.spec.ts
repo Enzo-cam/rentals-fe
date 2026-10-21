@@ -14,7 +14,7 @@ type Echo = {
 const MIB = 1024 * 1024;
 const FOREIGN_ORIGIN = "https://evil.example";
 
-// Headers the HTTP client of the proxy (undici) or the transport add on its own.
+/** Added by the proxy's HTTP client (undici) or the transport, not by the test. */
 const TRANSPORT_HEADERS = [
   "host",
   "connection",
@@ -36,10 +36,7 @@ const ALLOWED_UPSTREAM = [
   ...TRANSPORT_HEADERS,
 ];
 
-/**
- * POST with a streamed body: Node's fetch sends it chunked, without
- * content-length, so the proxy has to count bytes while reading.
- */
+/** A streamed body makes Node's fetch send it chunked, without content-length. */
 async function postChunked(totalBytes: number): Promise<Response> {
   const chunk = new Uint8Array(64 * 1024).fill(97);
   let sent = 0;
@@ -112,7 +109,6 @@ test.describe("AC-6: header allowlists", () => {
     expect(headers["cache-control"]).toBe("private, max-age=5");
     expect(headers["retry-after"]).toBe("7");
     expect(headers["x-upstream-extra"]).toBeUndefined();
-    // The security headers of next.config.ts also reach /api/*.
     expect(headers["x-content-type-options"]).toBe("nosniff");
   });
 

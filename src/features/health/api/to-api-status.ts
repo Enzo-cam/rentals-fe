@@ -1,10 +1,6 @@
 import type { ApiHealth } from "../types";
 
-/**
- * Outcome of GET /health: HTTP status and parsed body, or undefined if the call
- * failed. The body stays `unknown`: openapi-fetch does not validate it, and a
- * body that does not match the contract must read as "unreachable" (AC-3).
- */
+/** `body` stays `unknown`: openapi-fetch does not validate it, and an off-contract body must read as unreachable. */
 export type HealthResult = { status: number; body: unknown } | undefined;
 
 export function toApiStatus(result: HealthResult): ApiHealth {

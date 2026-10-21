@@ -11,7 +11,6 @@ import { parseServerEnv, type ServerEnv } from "./server-env";
 
 const MAX_BODY_BYTES = 1024 * 1024;
 const UPSTREAM_TIMEOUT_MS = 10_000;
-/** Deadline to receive the whole client body (slow clients), same as upstream. */
 const CLIENT_BODY_TIMEOUT_MS = UPSTREAM_TIMEOUT_MS;
 const PROXY_PREFIX = "/api";
 const METHODS_WITHOUT_BODY = new Set(["GET", "HEAD"]);
@@ -38,17 +37,12 @@ function errorName(error: unknown): string {
     : "UnknownError";
 }
 
-/**
- * Same-origin BFF proxy (ADR-0001): forwards `/api/<path>` to `API_URL/<path>`.
- * It never interprets the API's answer (INV-FE-01): status and body go back as
- * they came, with only the allowed headers.
- */
+/** @see docs/adr/0001-sesion-y-proxy-bff.md and INV-FE-01 (status and body pass through untouched). */
 export async function proxyToApi(request: Request): Promise<Response> {
   let env: ServerEnv;
   try {
     env = parseServerEnv(process.env);
   } catch (error) {
-    // The message names the variable, never its value.
     const detail = error instanceof Error ? error.message : "unknown";
     console.error(`[bff-proxy] proxy_misconfigured: ${detail}`);
     return proxyError(500, "proxy_misconfigured");
@@ -66,7 +60,6 @@ export async function proxyToApi(request: Request): Promise<Response> {
     return proxyError(403, "forbidden_origin");
   }
 
-  // GET and HEAD go upstream without a body, whatever the client sent.
   let body: Blob | undefined;
   if (request.body && !METHODS_WITHOUT_BODY.has(method)) {
     const declaredLength = Number(request.headers.get("content-length") ?? 0);

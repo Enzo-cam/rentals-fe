@@ -1,7 +1,4 @@
-/**
- * Import rules of docs/architecture.md §2. `pnpm depcruise` fails on any of them.
- * @type {import('dependency-cruiser').IConfiguration}
- */
+/** @see docs/architecture.md §2 @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
   forbidden: [
     {
