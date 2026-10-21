@@ -92,6 +92,16 @@ Se completan con la primera pantalla que pase `/review-pr`.
 - Un solo foco por PR.
 - Toda PR enlaza su ticket como `Enzo-cam/rentals-be#N`.
 
+## Comentarios
+
+- **El objetivo es que los comentarios sean útiles, no que no haya ninguno.** Un comentario útil explica un porqué
+  que el código no puede decir: un comportamiento del navegador o de Next, un riesgo de seguridad, una decisión
+  tomada. Lo que el nombre de la función, el componente o el test ya dice, no se comenta.
+- Van como JSDoc `/** … */` justo antes de la declaración (función, componente, type, const, objeto de config),
+  nunca dentro del cuerpo de una función, entre sentencias ni en JSX. En dependency-cruiser, el campo `comment`.
+- Si el porqué ya está en un ADR, en `docs/architecture.md` o en un invariante, el JSDoc lo referencia
+  (`@see docs/adr/0001-sesion-y-proxy-bff.md`, `INV-FE-04`) en vez de repetirlo. Los archivos generados no se tocan.
+
 ## Commits
 
 - **Se agrupan por archivos relacionados:** un commit por pieza (configuración, herramientas, cliente de la API,
