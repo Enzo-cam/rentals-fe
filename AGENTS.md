@@ -9,8 +9,11 @@ la API y los muestra. El vocabulario es el de `../rentals-be/GLOSSARY.md`.
 
 ## Stack
 
-- Next.js (App Router) + TypeScript. Versión y librerías de UI: **pendiente** del scaffolding.
-- Datos: cliente tipado generado desde el OpenAPI de `rentals-be`. Nunca tipos escritos a mano para la API.
+- Next.js 16.4 (App Router) + React 19.3 + TypeScript 5.9 estricto, Tailwind CSS 4.3, shadcn/ui (estilo
+  `base-nova`). Node ≥ 24.7, pnpm 11.
+- Datos: cliente tipado generado desde el OpenAPI de `rentals-be` con **openapi-typescript 7** (tipos, en
+  `src/api/schema.d.ts`) y **openapi-fetch 0.17** (cliente). `pnpm api:sync` lo regenera. Nunca tipos escritos a mano
+  para la API.
 - Sesión: el navegador habla solo con este origen; el proxy `/api/[...path]` reenvía a la API (ADR-0001).
 - PWA: postergada; por ahora es web online.
 - Idioma: código en inglés, textos de pantalla en español (ADR-0001 de `rentals-be`).
@@ -27,15 +30,27 @@ tests. Toda PR pasa su checklist.
 
 ## Mapa
 
-Todavía no hay código. La estructura objetivo (detalle en `docs/architecture.md` §2):
+Lo que hay hoy (la estructura objetivo completa está en `docs/architecture.md` §2):
 
 ```text
 src/
-├── app/                  rutas finas: (publico), p/[token], (app), (admin), api/[...path], (dev)/gallery
-├── features/<feature>/   components/, hooks/, api/, types.ts, index.ts
-├── api/                  cliente generado del OpenAPI, server.ts (solo servidor), QueryClient
-├── components/ui/        shadcn/ui, sin lógica de negocio
-└── lib/                  format/ (plata y fechas), effects/ (los únicos useEffect)
+├── app/
+│   ├── layout.tsx              <html lang="es-AR">, metadata base
+│   ├── (publico)/page.tsx      "/": estado de la API (Server Component, noindex)
+│   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
+├── features/
+│   └── health/                 llamada a GET /health y su tarjeta de estado
+├── api/
+│   ├── openapi.json            contrato copiado de rentals-be (openapi.source.json dice de qué commit)
+│   ├── schema.d.ts             tipos generados: no se editan
+│   ├── server.ts               solo servidor: cliente con API_URL + X-Origin-Secret, y el proxy
+│   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
+│   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
+│   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
+├── components/ui/              shadcn/ui (card)
+└── lib/                        todavía vacío: format/ y effects/ llegan con su primer uso
+e2e/                            Playwright: pages/, proxy/ y support/ (API falsa local)
+scripts/                        api-sync, api-check, check-client-env
 ```
 
 ## Reglas
@@ -72,9 +87,19 @@ Se completan con la primera pantalla que pase `/review-pr`.
 
 ## Presupuesto de PR
 
-- Máximo **400 líneas de lógica de producción** por PR (tests, cliente generado y estilos no cuentan).
+- Máximo 700 líneas de lógica de producción por PR. Tests, cliente generado y estilos no cuentan. La PR resume qué
+  casos y bordes cubren los tests.
 - Un solo foco por PR.
 - Toda PR enlaza su ticket como `Enzo-cam/rentals-be#N`.
+
+## Commits
+
+- **Se agrupan por archivos relacionados:** un commit por pieza (configuración, herramientas, cliente de la API,
+  proxy, un feature con su página, CI, docs), con el código y sus tests en el mismo commit. Ni un commit gigante con
+  todo, ni uno por archivo: la PR se tiene que poder seguir commit por commit.
+- Mensajes en inglés (ADR-0001 de `rentals-be`), con prefijo convencional: `feat`, `fix`, `refactor`, `test`,
+  `chore`, `ci`, `docs`.
+- Nadie commitea, pushea ni abre una PR sin pedido explícito del humano.
 
 ## Agent skills
 

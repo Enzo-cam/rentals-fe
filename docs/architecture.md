@@ -33,7 +33,8 @@ src/
 │       ├── api/                query keys y funciones que llaman al cliente generado
 │       ├── types.ts            solo tipos de UI: valores de formulario, filtros, view models
 │       └── index.ts            API pública del feature: lo único que se importa desde afuera
-├── api/                        cliente generado del OpenAPI, server.ts (solo servidor), QueryClient
+├── api/                        cliente generado del OpenAPI, server.ts (solo servidor), QueryClient,
+│                               bff-proxy.ts, proxy-rules.ts y server-env.ts (el proxy y sus reglas)
 ├── components/ui/              shadcn/ui y piezas visuales sin dominio
 └── lib/
     ├── format/                 plata y fechas: un solo formateador de cada uno (INV-FE-05)
@@ -48,7 +49,7 @@ src/
 | `features/A` | Su propio interior, `features/B/index.ts`, `components/ui`, `lib`, `api` | El interior de `features/B` |
 | `components/ui` | `lib` | `features`, `api` |
 | `lib` | Nada del proyecto | `features`, `api`, `components` |
-| Código de cliente | — | `api/server.ts` (lleva `import 'server-only'`) |
+| Código de cliente | — | `api/server.ts` (lleva `import 'server-only'`: lo hace cumplir el build, no dependency-cruiser) |
 
 ## 3. Anatomía de un feature
 
@@ -80,6 +81,8 @@ features/bookings/
 |---|---|---|
 | `(publico)`, `p/[token]` | Server Component con `api/server.ts` | HTML completo para Google y WhatsApp |
 | `(app)` | React Query en el cliente, por el proxy `/api` | Interactivo, con caché, reintentos e invalidación |
+
+Un Server Component de un feature pide datos con una función de `features/<f>/api/` (no con hooks), como `getApiHealth`.
 
 ### Reglas de React Query
 
@@ -162,6 +165,8 @@ Detalle en la skill `seo-tecnico`. Mínimo obligatorio:
 | Funciones puras (`lib/format`, keys, mapeos) | Vitest | Junto al archivo, `*.test.ts` |
 
 - La red se simula con `page.route` (Playwright). Las stories traen sus datos y proveedores.
+- La red que sale del servidor (Server Components y proxy) se simula con una API falsa local que levanta
+  Playwright (`e2e/support/fake-api.mjs`), porque `page.route` solo intercepta al navegador.
 - Selectores por rol y texto accesible (`getByRole`, `getByLabel`); `data-testid` solo si no hay alternativa.
 - Cada componente con estados tiene una story por estado, y cada story su test.
 - `app/(dev)/gallery` responde 404 cuando `NODE_ENV === 'production'`.
