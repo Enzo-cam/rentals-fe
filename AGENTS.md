@@ -14,23 +14,28 @@ la API y los muestra. El vocabulario es el de `../rentals-be/GLOSSARY.md`.
 - Sesión: el navegador habla solo con este origen; el proxy `/api/[...path]` reenvía a la API (ADR-0001).
 - PWA: postergada; por ahora es web online.
 - Idioma: código en inglés, textos de pantalla en español (ADR-0001 de `rentals-be`).
-- Tests: **pendiente** (se espera Vitest + Testing Library, y Playwright para los flujos críticos en celular).
+- Estado y datos: React Query en `(app)`, Server Components en lo público, react-hook-form + Zod en formularios, sin
+  librería de estado global (ADR-0002).
+- Tests: **Playwright** para flujos, páginas (con SEO) y componentes (stories + `mount()`); **Vitest** solo para
+  funciones puras (ADR-0002).
+
+## Arquitectura (obligatoria)
+
+**[`docs/architecture.md`](docs/architecture.md) manda sobre cómo se escribe cada archivo de este repo:** features,
+reglas de imports, React Query, dónde vive cada estado, `useEffect` solo en `src/lib/effects/` (INV-FE-06), SEO y
+tests. Toda PR pasa su checklist.
 
 ## Mapa
 
-Todavía no hay código. La estructura objetivo:
+Todavía no hay código. La estructura objetivo (detalle en `docs/architecture.md` §2):
 
 ```text
 src/
-├── app/
-│   ├── (publico)/        landing y páginas indexables: renderizadas en el servidor
-│   ├── p/[token]/        link de presupuesto: público, noindex, con Open Graph para WhatsApp
-│   ├── (app)/            aplicación del negocio: requiere sesión, noindex
-│   ├── (admin)/          backoffice de la plataforma (futuro, paso 9): cookie propia, noindex
-│   └── api/[...path]/    proxy BFF hacia rentals-be: sin lógica, sin caché (ADR-0001)
-├── api/                  cliente generado desde el OpenAPI + server.ts (solo servidor) + adaptadores
-├── componentes/          UI sin lógica de negocio
-└── lib/                  utilidades de presentación (formato de plata, fechas en la zona del negocio)
+├── app/                  rutas finas: (publico), p/[token], (app), (admin), api/[...path], (dev)/gallery
+├── features/<feature>/   components/, hooks/, api/, types.ts, index.ts
+├── api/                  cliente generado del OpenAPI, server.ts (solo servidor), QueryClient
+├── components/ui/        shadcn/ui, sin lógica de negocio
+└── lib/                  format/ (plata y fechas), effects/ (los únicos useEffect)
 ```
 
 ## Reglas
@@ -60,8 +65,10 @@ Se completan con la primera pantalla que pase `/review-pr`.
 - **Plan de trabajo actual:** `../rentals-be/docs/plan-boceto.md` (los pasos `1b` y los de pantallas son de este repo)
 - Comandos: [`docs/agents/commands.md`](docs/agents/commands.md)
 - Invariantes: [`docs/agents/invariants.md`](docs/agents/invariants.md)
+- **Arquitectura:** [`docs/architecture.md`](docs/architecture.md)
 - Glosario: `../rentals-be/GLOSSARY.md` · Decisiones: [`docs/adr/`](docs/adr/) (sesión y proxy:
-  [0001](docs/adr/0001-sesion-y-proxy-bff.md)) y las de `../rentals-be/docs/adr/`
+  [0001](docs/adr/0001-sesion-y-proxy-bff.md); features, estado y tests:
+  [0002](docs/adr/0002-arquitectura-por-features.md)) y las de `../rentals-be/docs/adr/`
 
 ## Presupuesto de PR
 
