@@ -29,3 +29,37 @@ export async function lastApiRequest(
   return ((await response.json()) as { lastRequest: RecordedRequest })
     .lastRequest;
 }
+
+export type ApiRequestLog = {
+  method: string;
+  path: string;
+  query: string;
+  headers: Record<string, string>;
+  body: string | null;
+};
+
+export type OverrideSpec = {
+  method: string;
+  path: string;
+  times?: number;
+  delayMs?: number;
+  status?: number;
+  body?: unknown;
+  headers?: Record<string, string>;
+  mode?: "reset";
+};
+
+/** Changes the answer of the next `times` matching requests: a delay, a fixed response or a cut connection. */
+export async function overrideNext(
+  request: APIRequestContext,
+  spec: OverrideSpec,
+) {
+  await request.post(`${FAKE_API_URL}/__control/override`, { data: spec });
+}
+
+export async function apiRequests(
+  request: APIRequestContext,
+): Promise<ApiRequestLog[]> {
+  const response = await request.get(`${FAKE_API_URL}/__control/requests`);
+  return ((await response.json()) as { requests: ApiRequestLog[] }).requests;
+}
