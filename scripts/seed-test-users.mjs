@@ -1,7 +1,12 @@
 import { writeFileSync } from "node:fs";
 import { createInterface } from "node:readline/promises";
+import { fileURLToPath } from "node:url";
 
-const OUTPUT_FILE = "test-users.local.txt";
+const OUTPUT_NAME = "test-users.local.txt";
+/** Next to the repo root whatever the working directory is, where .gitignore already ignores it. */
+const OUTPUT_FILE = fileURLToPath(
+  new URL(`../${OUTPUT_NAME}`, import.meta.url),
+);
 const REQUIRED_ENV = ["API_URL", "ORIGIN_SECRET", "FRONT_ORIGIN"];
 
 /** Failures with a message that is safe to print: it never carries the password, cookie, secret or links. */
@@ -220,11 +225,11 @@ async function seed(env, email, password) {
     writeFileSync(
       OUTPUT_FILE,
       buildReport({ suffix, now, frontOrigin: env.FRONT_ORIGIN, users }),
-      "utf8",
+      { encoding: "utf8", mode: 0o600 },
     );
     console.log(`${users.length} usuarios creados:`);
     for (const user of users) console.log(`  - ${user.email}`);
-    console.log(`Roles y links en ${OUTPUT_FILE}`);
+    console.log(`Roles y links en ${OUTPUT_NAME}`);
   } finally {
     if (loggedIn) {
       try {
@@ -275,13 +280,23 @@ async function main() {
   await seed(env, email, password);
 }
 
+/** Only the error name is printed: the message of an unexpected error could carry a URL or a value typed here. */
+function describeUnexpected(error) {
+  if (error instanceof ScriptError) return error.message;
+  const name = error instanceof Error ? error.name : "UnknownError";
+  if (
+    error instanceof TypeError ||
+    name === "AbortError" ||
+    name === "TimeoutError"
+  ) {
+    return "Falló el pedido a la API (red o tiempo agotado).";
+  }
+  return `Error inesperado: ${name}`;
+}
+
 try {
   await main();
 } catch (error) {
-  console.error(
-    error instanceof ScriptError
-      ? error.message
-      : "Falló el pedido a la API (red o tiempo agotado).",
-  );
+  console.error(describeUnexpected(error));
   process.exit(1);
 }
