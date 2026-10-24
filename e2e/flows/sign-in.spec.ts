@@ -1,8 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-import { overrideNext, resetFakeApi } from "../support/fake-api-control";
+import {
+  apiRequests,
+  overrideNext,
+  resetFakeApi,
+} from "../support/fake-api-control";
 import {
   fillSignIn,
+  N1,
+  N2,
+  N2_ID,
   openScreen,
   sessionCookie,
   USERS,
@@ -89,4 +96,28 @@ test("a 502 shows the system is down, and trying again signs in", async ({
 
   await page.getByRole("button", { name: "Entrar" }).click();
   await page.waitForURL("**/cuenta");
+});
+
+/** AC-12 */
+test("Juan, with two businesses, picks one and /cuenta shows it", async ({
+  page,
+  request,
+}) => {
+  await openScreen(page, "/ingresar");
+  await fillSignIn(page, USERS.juan.email, USERS.juan.password);
+  await page.getByRole("button", { name: "Entrar" }).click();
+
+  await page.waitForURL("**/elegir-negocio");
+  await expect(
+    page.getByRole("button", { name: `${N1} · Encargado` }),
+  ).toBeVisible();
+  await page.getByRole("button", { name: `${N2} · Dueño` }).click();
+
+  await page.waitForURL("**/cuenta");
+  await expect(page.getByText(N2, { exact: true })).toBeVisible();
+  await expect(page.getByText("Dueño", { exact: true })).toBeVisible();
+  const selected = (await apiRequests(request)).find(
+    (call) => call.path === "/auth/select-business",
+  );
+  expect(JSON.parse(selected?.body ?? "")).toEqual({ businessId: N2_ID });
 });

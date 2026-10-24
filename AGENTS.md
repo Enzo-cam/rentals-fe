@@ -39,10 +39,18 @@ src/
 │   ├── layout.tsx              <html lang="es-AR">, metadata base
 │   ├── (publico)/page.tsx      "/": estado de la API (Server Component, noindex)
 │   ├── (app)/layout.tsx        aplicación del negocio: noindex y <SessionProviders>
+│   ├── (app)/ingresar/         entrar con email y contraseña
+│   ├── (app)/definir-contrasena/  definir la contraseña con el link de WhatsApp (el token va en el fragmento)
+│   ├── (app)/elegir-negocio/   elegir negocio si el usuario tiene varios
+│   ├── (app)/cuenta/           quién soy, negocio, rol y salir
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
 │   ├── health/                 llamada a GET /health y su tarjeta de estado
-│   └── session/                sesión de los usuarios de los negocios: QueryClient del navegador y sus redirects
+│   └── session/                sesión de los usuarios de los negocios (se importa solo por index.ts):
+│       ├── api/                keys, requests (login, contraseña, negocios, /me, logout) y destino al entrar
+│       ├── hooks/              use-sign-in, use-define-password, use-my-businesses, use-select-business, use-me,
+│       │                       use-sign-out y la lectura del token del fragmento
+│       └── components/         formularios y pantallas, textos y SessionProviders (QueryClient del navegador)
 ├── api/
 │   ├── openapi.json            contrato copiado de rentals-be (openapi.source.json dice de qué commit)
 │   ├── schema.d.ts             tipos generados: no se editan
@@ -54,7 +62,7 @@ src/
 │   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
 │   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
 │   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
-├── components/ui/              shadcn/ui (card)
+├── components/ui/              shadcn/ui (card, button, input, label)
 └── lib/                        routes.ts (rutas y destino al entrar); format/ y effects/ llegan con su primer uso
 e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local, con sesión)
 scripts/                        api-sync, api-check, check-client-env

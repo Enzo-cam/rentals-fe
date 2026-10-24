@@ -23,3 +23,13 @@ export function signOut() {
 export function definePassword(values: { token: string; password: string }) {
   return unwrap(browserApi.POST("/auth/password", { body: values }));
 }
+
+export function listMyBusinesses() {
+  return unwrap(browserApi.GET("/me/businesses"));
+}
+
+export function selectBusiness(businessId: string) {
+  return unwrap(
+    browserApi.POST("/auth/select-business", { body: { businessId } }),
+  );
+}

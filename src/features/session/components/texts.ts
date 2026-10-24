@@ -31,3 +31,10 @@ export const DEFINE_PASSWORD_ERRORS = {
   no_membership:
     "Guardamos tu contraseña, pero tu usuario no está activo en ningún negocio. Escribinos para revisarlo.",
 };
+
+export const PICKER_TEXTS = {
+  loading: "Cargando tus negocios…",
+  empty:
+    "Tu usuario no está activo en ningún negocio. Escribinos para revisarlo.",
+  businessGone: "Ya no tenés acceso a ese negocio. Elegí otro.",
+};

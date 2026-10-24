@@ -71,3 +71,5 @@ export function linkToken(name: string): string {
 export function passwordLink(name: string): string {
   return `/definir-contrasena#token=${linkToken(name)}`;
 }
+
+export const N2_ID = "22222222-2222-4222-8222-222222222222";
