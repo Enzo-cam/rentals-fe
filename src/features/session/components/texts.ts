@@ -4,3 +4,15 @@ export const SIGN_IN_ERRORS = {
   no_membership:
     "Tu usuario no está activo en ningún negocio. Escribinos para revisarlo.",
 };
+
+export const ROLE_LABELS = {
+  owner: "Dueño",
+  manager: "Encargado",
+  crew: "Reparto",
+} as const;
+
+export const ACCOUNT_TEXTS = {
+  loading: "Cargando tu cuenta…",
+  businessGone: "Ya no tenés acceso a este negocio.",
+  signOutFailed: "No pudimos cerrar la sesión. Probá de nuevo.",
+};

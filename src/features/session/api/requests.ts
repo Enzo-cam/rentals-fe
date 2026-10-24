@@ -6,3 +6,16 @@ import type { SignInValues } from "../types";
 export function signIn(values: SignInValues) {
   return unwrap(browserApi.POST("/auth/login", { body: values }));
 }
+
+export function getMe() {
+  return unwrap(browserApi.GET("/me"));
+}
+
+/** openapi-fetch sends no `Content-Type` without a body, and the API answers 415 to a mutation without JSON. */
+export function signOut() {
+  return unwrap(
+    browserApi.POST("/auth/logout", {
+      headers: { "content-type": "application/json" },
+    }),
+  );
+}
