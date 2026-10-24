@@ -1,6 +1,7 @@
 import createClient from "openapi-fetch";
 
 import type { paths } from "./schema";
+import { withTimeout } from "./with-timeout";
 
 const REQUEST_TIMEOUT_MS = 15_000;
 
@@ -11,11 +12,12 @@ const REQUEST_TIMEOUT_MS = 15_000;
  */
 export const browserApi = createClient<paths>({
   baseUrl: "/api",
-  fetch: (request) =>
-    fetch(request, {
-      signal: AbortSignal.any([
-        request.signal,
-        AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-      ]),
-    }),
+  fetch: async (request) => {
+    const timeout = withTimeout(request.signal, REQUEST_TIMEOUT_MS);
+    try {
+      return await fetch(request, { signal: timeout.signal });
+    } finally {
+      timeout.clear();
+    }
+  },
 });

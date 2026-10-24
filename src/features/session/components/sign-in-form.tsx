@@ -29,7 +29,7 @@ export function SignInForm() {
     <form
       method="post"
       noValidate
-      onSubmit={handleSubmit((values) => signIn.mutate(values))}
+      onSubmit={handleSubmit((values) => signIn.submitOnce(values))}
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-2">

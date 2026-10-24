@@ -61,6 +61,7 @@ test("Carla defines her password, lands on /cuenta and the token only travels in
   expect(page.url()).not.toContain("token");
 
   const token = linkToken("carla");
+  expect(browserRequests.length).toBeGreaterThan(0);
   for (const sent of browserRequests) {
     expect(sent.url).not.toContain(token);
     expect(JSON.stringify(sent.headers)).not.toContain(token);
@@ -74,9 +75,16 @@ test("Carla defines her password, lands on /cuenta and the token only travels in
 /** AC-4: the front does not validate the policy, the API does. */
 test("a short password reaches the API, keeps the form and the token, and a valid one enters", async ({
   page,
+  request,
 }) => {
   await openScreen(page, passwordLink("carla"));
   await submit(page, "corta");
+  await expect(page.locator("form").getByRole("alert")).toBeVisible();
+  const first = (await apiRequests(request)).filter(
+    (call) => call.path === "/auth/password",
+  );
+  expect(first).toHaveLength(1);
+  expect(JSON.parse(first[0].body ?? "").password).toBe("corta");
   await expect(page.locator("form").getByRole("alert")).toHaveText(
     "La contraseña tiene que tener entre 8 y 128 caracteres y al menos uno que no sea letra ni número (un espacio o un signo sirven).",
   );
@@ -173,6 +181,32 @@ test("a double click plus Enter, with a slow API, send a single request", async 
   await page.getByLabel("Repetí la contraseña").fill(VALID);
   await page.getByRole("button", { name: "Guardar y entrar" }).dblclick();
   await page.getByLabel("Repetí la contraseña").press("Enter");
+
+  await page.waitForURL("**/cuenta");
+  const sent = (await apiRequests(request)).filter(
+    (call) => call.path === "/auth/password",
+  );
+  expect(sent).toHaveLength(1);
+});
+
+/** AC-9: two submits in the same tick, before React can re-render. */
+test("two submits in the same tick send a single request", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "POST",
+    path: "/auth/password",
+    delayMs: 1000,
+  });
+  await openScreen(page, passwordLink("carla"));
+  await page.getByLabel("Contraseña nueva").fill(VALID);
+  await page.getByLabel("Repetí la contraseña").fill(VALID);
+  await page.evaluate(() => {
+    const form = document.querySelector("form");
+    form?.requestSubmit();
+    form?.requestSubmit();
+  });
 
   await page.waitForURL("**/cuenta");
   const sent = (await apiRequests(request)).filter(

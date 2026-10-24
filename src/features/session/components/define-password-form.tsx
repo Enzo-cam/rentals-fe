@@ -49,9 +49,11 @@ export function DefinePasswordForm() {
         <p role="alert">
           {describeError(define.error, DEFINE_PASSWORD_ERRORS)}
         </p>
-        <Link href={ROUTES.signIn} className="underline">
-          Entrar con tu email
-        </Link>
+        {failure.code === "invalid_token" && (
+          <Link href={ROUTES.signIn} className="underline">
+            Entrar con tu email
+          </Link>
+        )}
       </div>
     );
   }
