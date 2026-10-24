@@ -39,3 +39,23 @@ export function trackBrowserRequests(page: Page): BrowserRequest[] {
   });
   return seen;
 }
+
+/** Same data as `session-fixtures.json`. */
+export const N1 = "Alquileres y Eventos Ana de Corrientes y Gran Resistencia";
+export const N2 = "Eventos Juan";
+export const USERS = {
+  ana: { email: "ana@example.com", password: "clave de ana 1" },
+  juan: { email: "juan@example.com", password: "clave de juan 1" },
+  beto: { email: "beto@example.com", password: "clave de beto 1" },
+  nora: { email: "nora@example.com", password: "clave de nora 1" },
+};
+
+/** `networkidle` so the form is hydrated: a submit before that would be a native one. */
+export async function openScreen(page: Page, path: string) {
+  await page.goto(path, { waitUntil: "networkidle" });
+}
+
+export async function fillSignIn(page: Page, email: string, password: string) {
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Contraseña", { exact: true }).fill(password);
+}

@@ -1,4 +1,4 @@
-import { retryAfterMinutes, type ApiFailure } from "./api-failure";
+import { failureOf, retryAfterMinutes, type ApiFailure } from "./api-failure";
 
 /** `byCode` holds the texts of one screen for the codes of the API; everything else gets the generic text. */
 export function describeFailure(
@@ -25,4 +25,15 @@ export function describeFailure(
     case "unauthenticated":
       return "Algo salió mal. Probá de nuevo.";
   }
+}
+
+/** For a caught `error` of any kind: one that is not an `ApiError` gets the generic text. */
+export function describeError(
+  error: unknown,
+  byCode: Record<string, string> = {},
+): string {
+  return describeFailure(
+    failureOf(error) ?? { kind: "rejected", status: 0, code: null },
+    byCode,
+  );
 }

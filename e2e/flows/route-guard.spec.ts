@@ -4,6 +4,7 @@ import { FRONT_ORIGIN } from "../support/env";
 import { apiRequests, resetFakeApi } from "../support/fake-api-control";
 
 const GUARDED = ["/cuenta", "/elegir-negocio"];
+const UNGUARDED = ["/", "/ingresar"];
 
 test.beforeEach(async ({ request }) => {
   await resetFakeApi(request);
@@ -38,8 +39,10 @@ test.describe("route guard without a session cookie", () => {
     }
   });
 
-  test("/ has no guard", async ({ request }) => {
-    const response = await request.get("/", { maxRedirects: 0 });
-    expect(response.status()).toBe(200);
-  });
+  for (const path of UNGUARDED) {
+    test(`${path} has no guard`, async ({ request }) => {
+      const response = await request.get(path, { maxRedirects: 0 });
+      expect(response.status()).toBe(200);
+    });
+  }
 });
