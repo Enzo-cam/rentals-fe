@@ -3,21 +3,19 @@
 import { QueryClientProvider, type QueryClient } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
+import { isLeavingSession } from "@/api/api-failure";
 import { createQueryClient } from "@/api/query-client";
 import { ROUTES } from "@/lib/routes";
 
 function makeQueryClient(): QueryClient {
   const client = createQueryClient((failure) => {
-    if (failure.kind === "unauthenticated") {
-      client.clear();
-      window.location.replace(ROUTES.signIn);
-    } else if (
-      failure.kind === "rejected" &&
-      failure.code === "business_not_selected"
-    ) {
-      client.clear();
-      window.location.replace(ROUTES.selectBusiness);
-    }
+    if (!isLeavingSession(failure)) return;
+    client.clear();
+    window.location.replace(
+      failure.kind === "unauthenticated"
+        ? ROUTES.signIn
+        : ROUTES.selectBusiness,
+    );
   });
   return client;
 }

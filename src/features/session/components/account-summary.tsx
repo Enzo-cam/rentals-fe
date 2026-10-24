@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 
-import { failureOf } from "@/api/api-failure";
+import { failureOf, isLeavingSession } from "@/api/api-failure";
 import { describeError } from "@/api/failure-message";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
 
 import { useMe } from "../hooks/use-me";
 import { useSignOut } from "../hooks/use-sign-out";
+import { SignOutButton } from "./sign-out-button";
 import { ACCOUNT_TEXTS, ROLE_LABELS } from "./texts";
 
 /**
@@ -20,10 +21,7 @@ export function AccountSummary() {
   const signOut = useSignOut();
   const me = useMe(!signOut.isSuccess);
   const failure = failureOf(me.error);
-  const leaving =
-    failure?.kind === "unauthenticated" ||
-    (failure?.kind === "rejected" && failure.code === "business_not_selected");
-  const busy = signOut.isPending || signOut.isSuccess;
+  const leaving = isLeavingSession(failure);
 
   return (
     <div className="flex flex-col gap-4">
@@ -59,18 +57,7 @@ export function AccountSummary() {
       ) : (
         <p role="status">{ACCOUNT_TEXTS.loading}</p>
       )}
-      {signOut.isError && (
-        <p role="alert" className="text-sm text-destructive">
-          {ACCOUNT_TEXTS.signOutFailed}
-        </p>
-      )}
-      <Button
-        variant="outline"
-        disabled={busy}
-        onClick={() => signOut.mutate()}
-      >
-        {busy ? "Saliendo…" : "Salir"}
-      </Button>
+      <SignOutButton signOut={signOut} />
     </div>
   );
 }

@@ -1,12 +1,13 @@
 "use client";
 
-import { failureOf } from "@/api/api-failure";
+import { failureOf, isLeavingSession } from "@/api/api-failure";
 import { describeError } from "@/api/failure-message";
 import { Button } from "@/components/ui/button";
 
 import { useMyBusinesses } from "../hooks/use-my-businesses";
 import { useSelectBusiness } from "../hooks/use-select-business";
 import { useSignOut } from "../hooks/use-sign-out";
+import { SignOutButton } from "./sign-out-button";
 import { PICKER_TEXTS, ROLE_LABELS } from "./texts";
 
 /**
@@ -18,25 +19,14 @@ export function BusinessPicker() {
   const select = useSelectBusiness();
   const signOut = useSignOut();
   const failure = failureOf(businesses.error);
-  const leaving = failure?.kind === "unauthenticated";
+  const leaving = isLeavingSession(failure);
   const busy = select.isPending || select.isSuccess;
 
   if (businesses.data?.businesses.length === 0) {
     return (
       <div className="flex flex-col gap-3">
         <p role="alert">{PICKER_TEXTS.empty}</p>
-        <Button
-          variant="outline"
-          disabled={signOut.isPending || signOut.isSuccess}
-          onClick={() => signOut.mutate()}
-        >
-          {signOut.isPending || signOut.isSuccess ? "Saliendo…" : "Salir"}
-        </Button>
-        {signOut.isError && (
-          <p role="alert" className="text-sm text-destructive">
-            No pudimos cerrar la sesión. Probá de nuevo.
-          </p>
-        )}
+        <SignOutButton signOut={signOut} />
       </div>
     );
   }

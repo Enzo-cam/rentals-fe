@@ -74,6 +74,14 @@ export async function unwrap<T>(call: Call<T>): Promise<T> {
   return data as T;
 }
 
+/** The session is dead or has no business: a screen of the session is about to be left, so it is not an error. */
+export function isLeavingSession(failure: ApiFailure | null): boolean {
+  return (
+    failure?.kind === "unauthenticated" ||
+    (failure?.kind === "rejected" && failure.code === "business_not_selected")
+  );
+}
+
 export function failureOf(error: unknown): ApiFailure | null {
   return error instanceof ApiError ? error.failure : null;
 }

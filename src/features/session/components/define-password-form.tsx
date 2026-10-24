@@ -11,7 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/lib/routes";
 
-import { useDefinePassword } from "../hooks/use-define-password";
+import {
+  isTerminalLinkFailure,
+  useDefinePassword,
+} from "../hooks/use-define-password";
 import { usePasswordLinkToken } from "../hooks/use-password-link-token";
 import { definePasswordSchema, type DefinePasswordValues } from "../types";
 import {
@@ -38,12 +41,9 @@ export function DefinePasswordForm() {
   if (token === undefined) return null;
 
   const failure = failureOf(define.error);
-  const terminal =
-    failure?.kind === "rejected" &&
-    (failure.code === "invalid_token" || failure.code === "no_membership");
   const busy = define.isPending || define.isSuccess;
 
-  if (terminal) {
+  if (isTerminalLinkFailure(failure)) {
     return (
       <div className="flex flex-col gap-3">
         <p role="alert">

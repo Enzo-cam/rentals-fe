@@ -1,12 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
-import { failureOf } from "@/api/api-failure";
+import { failureOf, type ApiFailure } from "@/api/api-failure";
 import { ROUTES } from "@/lib/routes";
 
 import { sessionKeys } from "../api/keys";
 import { nextPathAfterSignIn } from "../api/next-path";
 import { definePassword } from "../api/requests";
+
+/** The link was consumed or rejected for good: the form is replaced by the explanation. */
+export function isTerminalLinkFailure(
+  failure: ApiFailure | null,
+): failure is Extract<ApiFailure, { kind: "rejected" }> {
+  return (
+    failure?.kind === "rejected" &&
+    (failure.code === "invalid_token" || failure.code === "no_membership")
+  );
+}
 
 /**
  * A link the API consumed or rejected (`invalid_token`, `no_membership`) must leave the address bar, so the token is
@@ -28,11 +38,7 @@ export function useDefinePassword() {
       router.replace(nextPathAfterSignIn(result));
     },
     onError: (error) => {
-      const failure = failureOf(error);
-      if (
-        failure?.kind === "rejected" &&
-        (failure.code === "invalid_token" || failure.code === "no_membership")
-      ) {
+      if (isTerminalLinkFailure(failureOf(error))) {
         window.history.replaceState(null, "", ROUTES.definePassword);
       }
     },
