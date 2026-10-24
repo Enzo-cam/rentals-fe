@@ -16,3 +16,18 @@ export const ACCOUNT_TEXTS = {
   businessGone: "Ya no tenés acceso a este negocio.",
   signOutFailed: "No pudimos cerrar la sesión. Probá de nuevo.",
 };
+
+export const PASSWORD_HINT =
+  "Al menos 8 caracteres y uno que no sea letra ni número, como un espacio o un signo.";
+
+export const LINK_INCOMPLETE =
+  "A este link le falta una parte. Abrí de nuevo el link que te mandamos por WhatsApp, completo.";
+
+export const DEFINE_PASSWORD_ERRORS = {
+  weak_password:
+    "La contraseña tiene que tener entre 8 y 128 caracteres y al menos uno que no sea letra ni número (un espacio o un signo sirven).",
+  invalid_token:
+    "Este link ya no sirve: puede que ya lo hayas usado o que haya vencido (dura 24 horas). Si ya definiste tu contraseña, entrá con tu email; si no, pedinos un link nuevo.",
+  no_membership:
+    "Guardamos tu contraseña, pero tu usuario no está activo en ningún negocio. Escribinos para revisarlo.",
+};

@@ -34,7 +34,9 @@ export function trackBrowserRequests(page: Page): BrowserRequest[] {
   const seen: BrowserRequest[] = [];
   page.on("request", (request) => {
     void request.allHeaders().then((headers) => {
-      seen.push({ url: request.url(), headers });
+      const url = new URL(request.url());
+      url.hash = "";
+      seen.push({ url: url.href, headers });
     });
   });
   return seen;
@@ -58,4 +60,14 @@ export async function openScreen(page: Page, path: string) {
 export async function fillSignIn(page: Page, email: string, password: string) {
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Contraseña", { exact: true }).fill(password);
+}
+
+/** The 43-character fake token of `session-fixtures.json` for a link name such as `carla`. */
+export function linkToken(name: string): string {
+  return `T-${name}`.padEnd(43, "0");
+}
+
+/** The link the user gets by WhatsApp: the token goes in the fragment, which a browser never sends to a server. */
+export function passwordLink(name: string): string {
+  return `/definir-contrasena#token=${linkToken(name)}`;
 }

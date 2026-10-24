@@ -4,7 +4,7 @@ import { FRONT_ORIGIN } from "../support/env";
 import { apiRequests, resetFakeApi } from "../support/fake-api-control";
 
 const GUARDED = ["/cuenta", "/elegir-negocio"];
-const UNGUARDED = ["/", "/ingresar"];
+const UNGUARDED = ["/", "/ingresar", "/definir-contrasena"];
 
 test.beforeEach(async ({ request }) => {
   await resetFakeApi(request);

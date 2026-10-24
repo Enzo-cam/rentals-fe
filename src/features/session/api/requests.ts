@@ -19,3 +19,7 @@ export function signOut() {
     }),
   );
 }
+
+export function definePassword(values: { token: string; password: string }) {
+  return unwrap(browserApi.POST("/auth/password", { body: values }));
+}
