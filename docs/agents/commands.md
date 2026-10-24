@@ -18,6 +18,7 @@ Los agentes corren **exactamente** estos comandos, desde la raíz del repo. Cada
 | Sincronizar el contrato | `pnpm api:sync` | Copia `../rentals-be/openapi.json`, anota el commit en `src/api/openapi.source.json` y regenera `src/api/schema.d.ts` |
 | Verificar el cliente generado | `pnpm api:check` | Compara `schema.d.ts` con lo que genera `openapi.json`. No necesita `rentals-be` |
 | Desarrollo | `pnpm dev` | Puerto 3100 (la API usa el 3000). Variables en `.env.local` (ver `.env.example`) |
+| Usuarios de prueba contra la API real | `node scripts/seed-test-users.mjs` | Con la API en `pnpm dev`. Pide la contraseña del administrador sin eco y escribe los links en `test-users.local.txt` (ignorado por git). Deja de andar cuando llegue el segundo factor del administrador (paso 2c de rentals-be) |
 
 E2E la primera vez: `pnpm exec playwright install chromium`.
 
