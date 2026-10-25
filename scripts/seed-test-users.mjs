@@ -25,7 +25,10 @@ function timestamp(date) {
   );
 }
 
-/** readline cannot hide input, so the password is read from the raw stream one character at a time. */
+/**
+ * readline cannot hide input, so the password is read from the raw stream one character at a time. A line break
+ * that arrives before anything was typed is ignored: on Windows the Enter of the email prompt can leave one pending.
+ */
 function readHidden(prompt) {
   return new Promise((resolve) => {
     const { stdin, stdout } = process;
@@ -48,6 +51,7 @@ function readHidden(prompt) {
           finish();
           process.exit(130);
         }
+        if ((char === "\r" || char === "\n") && value === "") continue;
         if (char === "\r" || char === "\n") {
           finish();
           resolve(value);
@@ -137,15 +141,27 @@ function buildReport({ suffix, now, frontOrigin, users }) {
   return lines.join("\n");
 }
 
-/** The administrator logs in, creates the businesses and always logs out; the cookie stays inside the requester. */
-async function seed(env, email, password) {
+/**
+ * The administrator logs in with email, password and the 6-digit code of the phone app (second factor, ADR-0006 of
+ * rentals-be), creates the businesses and always logs out; the cookie stays inside the requester.
+ */
+async function seed(env, email, password, code) {
   const api = createRequester(env);
   let loggedIn = false;
   try {
-    const login = await api.post("/admin/auth/login", { email, password });
+    const login = await api.post("/admin/auth/login", {
+      email,
+      password,
+      code,
+    });
     if (login.status === 401) {
       throw new ScriptError(
-        "Email o contraseña del administrador incorrectos.",
+        "Email, contraseña o código incorrectos. Si el administrador todavía no tiene segundo factor, corré `pnpm admin:totp` en rentals-be.",
+      );
+    }
+    if (login.status === 400) {
+      throw new ScriptError(
+        "La API rechazó el pedido de login (400). ¿La API está actualizada y migrada (`pnpm db:migrate` en rentals-be)?",
       );
     }
     if (login.status === 429) {
@@ -277,7 +293,16 @@ async function main() {
 
   const email = await ask("Email del administrador: ");
   const password = await readHidden("Contraseña del administrador: ");
-  await seed(env, email, password);
+  if (password === "") {
+    console.error("No se leyó ninguna contraseña. Probá de nuevo.");
+    process.exit(1);
+  }
+  const code = await ask("Código de 6 dígitos de la app del celular: ");
+  if (!/^\d{6}$/.test(code)) {
+    console.error("El código tiene que ser de exactamente 6 dígitos.");
+    process.exit(1);
+  }
+  await seed(env, email, password, code);
 }
 
 /** Only the error name is printed: the message of an unexpected error could carry a URL or a value typed here. */
