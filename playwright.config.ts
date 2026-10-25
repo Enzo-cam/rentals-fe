@@ -33,7 +33,7 @@ export default defineConfig({
     {
       command: "node e2e/support/fake-api.mjs",
       url: `${FAKE_API_URL}/__control/ping`,
-      env: { ORIGIN_SECRET: E2E_ORIGIN_SECRET },
+      env: { ORIGIN_SECRET: E2E_ORIGIN_SECRET, FRONT_ORIGIN },
       reuseExistingServer: false,
     },
     {

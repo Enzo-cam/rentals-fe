@@ -1,12 +1,20 @@
 import { createServer } from "node:http";
 
+import { SESSION_PATHS, createSessionApi } from "./fake-session-api.mjs";
+
 const PORT = Number(process.env.FAKE_API_PORT ?? 4010);
 const SECRET = process.env.ORIGIN_SECRET;
 const HEALTH_MODES = ["ok", "down", "hang", "reset", "badbody", "notfound"];
 const HANG_MS = 15_000;
 
+const sessionApi = createSessionApi({
+  frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
+});
+
 let healthMode = "ok";
 let lastRequest = null;
+let requests = [];
+let overrides = [];
 
 function json(res, status, body, headers = {}) {
   res.writeHead(status, { "content-type": "application/json", ...headers });
@@ -24,13 +32,66 @@ async function readBody(req) {
   return length;
 }
 
+async function readText(req) {
+  const chunks = [];
+  for await (const chunk of req) chunks.push(chunk);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+/** Takes the first matching override and uses up one of its `times`. */
+function takeOverride(method, path) {
+  const index = overrides.findIndex(
+    (candidate) => candidate.method === method && candidate.path === path,
+  );
+  if (index === -1) return null;
+  const found = overrides[index];
+  found.times -= 1;
+  if (found.times <= 0) overrides.splice(index, 1);
+  return found;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function session(req, res, path, url) {
+  const entry = {
+    method: req.method,
+    path,
+    query: url.search,
+    headers: req.headers,
+    body: null,
+  };
+  requests.push(entry);
+  const text = await readText(req);
+  entry.body = text === "" ? null : text;
+
+  const override = takeOverride(req.method, path);
+  if (override?.delayMs) await wait(override.delayMs);
+  if (override?.mode === "reset") return req.socket.destroy();
+  if (override?.status !== undefined) {
+    return json(res, override.status, override.body ?? {}, override.headers);
+  }
+  return sessionApi.handle(req, res, path, text);
+}
+
 function control(req, res, path) {
   if (path === "/__control/ping") return json(res, 200, { ok: true });
   if (path === "/__control/last") return json(res, 200, { lastRequest });
+  if (path === "/__control/requests") return json(res, 200, { requests });
   if (req.method === "POST" && path === "/__control/reset") {
     healthMode = "ok";
     lastRequest = null;
+    requests = [];
+    overrides = [];
+    sessionApi.reset();
     return json(res, 200, { ok: true });
+  }
+  if (req.method === "POST" && path === "/__control/override") {
+    return readText(req).then((text) => {
+      overrides.push({ times: 1, ...JSON.parse(text) });
+      return json(res, 200, { ok: true });
+    });
   }
   const mode = path.match(/^\/__control\/health\/(\w+)$/)?.[1];
   if (req.method === "POST" && HEALTH_MODES.includes(mode)) {
@@ -74,6 +135,8 @@ const server = createServer(async (req, res) => {
   if (!SECRET || req.headers["x-origin-secret"] !== SECRET) {
     return json(res, 404, { error: "not_found" });
   }
+
+  if (SESSION_PATHS.has(path)) return session(req, res, path, url);
 
   if (path.startsWith("/echo")) {
     const bodyLength = await readBody(req);

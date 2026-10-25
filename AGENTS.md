@@ -34,22 +34,37 @@ Lo que hay hoy (la estructura objetivo completa está en `docs/architecture.md` 
 
 ```text
 src/
+├── proxy.ts                    guardia optimista de /cuenta y /elegir-negocio: sin cookie, 307 a /ingresar
 ├── app/
 │   ├── layout.tsx              <html lang="es-AR">, metadata base
 │   ├── (publico)/page.tsx      "/": estado de la API (Server Component, noindex)
+│   ├── (app)/layout.tsx        aplicación del negocio: noindex y <SessionProviders>
+│   ├── (app)/ingresar/         entrar con email y contraseña
+│   ├── (app)/definir-contrasena/  definir la contraseña con el link de WhatsApp (el token va en el fragmento)
+│   ├── (app)/elegir-negocio/   elegir negocio si el usuario tiene varios
+│   ├── (app)/cuenta/           quién soy, negocio, rol y salir
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
-│   └── health/                 llamada a GET /health y su tarjeta de estado
+│   ├── health/                 llamada a GET /health y su tarjeta de estado
+│   └── session/                sesión de los usuarios de los negocios (se importa solo por index.ts):
+│       ├── api/                keys, requests (login, contraseña, negocios, /me, logout) y destino al entrar
+│       ├── hooks/              use-sign-in, use-define-password, use-my-businesses, use-select-business, use-me,
+│       │                       use-sign-out y la lectura del token del fragmento
+│       └── components/         formularios y pantallas, textos y SessionProviders (QueryClient del navegador)
 ├── api/
 │   ├── openapi.json            contrato copiado de rentals-be (openapi.source.json dice de qué commit)
 │   ├── schema.d.ts             tipos generados: no se editan
 │   ├── server.ts               solo servidor: cliente con API_URL + X-Origin-Secret, y el proxy
+│   ├── browser-client.ts       cliente del navegador: baseUrl /api, timeout de 15 s
+│   ├── api-failure.ts          errores de la API: ApiFailure, ApiError, unwrap, Retry-After
+│   ├── failure-message.ts      textos genéricos de cada falla
+│   ├── query-client.ts         QueryClient: un reintento solo por red o 5xx, mutaciones sin reintento
 │   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
 │   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
 │   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
-├── components/ui/              shadcn/ui (card)
-└── lib/                        todavía vacío: format/ y effects/ llegan con su primer uso
-e2e/                            Playwright: pages/, proxy/ y support/ (API falsa local)
+├── components/ui/              shadcn/ui (card, button, input, label)
+└── lib/                        routes.ts (rutas y destino al entrar); format/ y effects/ llegan con su primer uso
+e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local, con sesión)
 scripts/                        api-sync, api-check, check-client-env
 ```
 
