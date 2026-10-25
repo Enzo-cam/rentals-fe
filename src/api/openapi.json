@@ -881,7 +881,7 @@
     "/admin/auth/login": {
       "post": {
         "summary": "Platform admin login",
-        "description": "Sets the __Host-admin_session cookie (HS256 JWT, 1 hour). An unknown email and a wrong password get the same 401. Counts 5 failures per email and 30 per IP in 15 minutes.",
+        "description": "Sets the __Host-admin_session cookie (HS256 JWT, 1 hour). The body carries the 6-digit TOTP code. An unknown email, a wrong password, a wrong, expired or already used code, and an admin without TOTP get the same 401. Counts 5 failures per email and 30 per IP in 15 minutes.",
         "requestBody": {
           "required": true,
           "content": {
@@ -898,11 +898,18 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 1024
+                  },
+                  "code": {
+                    "type": "string",
+                    "pattern": "^\\d{6}$",
+                    "description": "The 6-digit code of the authenticator app, as a string to keep the leading zeros.",
+                    "example": "123456"
                   }
                 },
                 "required": [
                   "email",
-                  "password"
+                  "password",
+                  "code"
                 ],
                 "additionalProperties": false
               }
@@ -924,7 +931,7 @@
             }
           },
           "401": {
-            "description": "invalid_credentials: unknown email or wrong password.",
+            "description": "invalid_credentials: unknown email, wrong password, wrong, expired or already used code, or no TOTP set up.",
             "content": {
               "application/json": {
                 "schema": {

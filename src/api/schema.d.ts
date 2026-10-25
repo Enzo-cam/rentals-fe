@@ -567,7 +567,7 @@ export interface paths {
         put?: never;
         /**
          * Platform admin login
-         * @description Sets the __Host-admin_session cookie (HS256 JWT, 1 hour). An unknown email and a wrong password get the same 401. Counts 5 failures per email and 30 per IP in 15 minutes.
+         * @description Sets the __Host-admin_session cookie (HS256 JWT, 1 hour). The body carries the 6-digit TOTP code. An unknown email, a wrong password, a wrong, expired or already used code, and an admin without TOTP get the same 401. Counts 5 failures per email and 30 per IP in 15 minutes.
          */
         post: {
             parameters: {
@@ -581,6 +581,11 @@ export interface paths {
                     "application/json": {
                         email: string;
                         password: string;
+                        /**
+                         * @description The 6-digit code of the authenticator app, as a string to keep the leading zeros.
+                         * @example 123456
+                         */
+                        code: string;
                     };
                 };
             };
@@ -601,7 +606,7 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
-                /** @description invalid_credentials: unknown email or wrong password. */
+                /** @description invalid_credentials: unknown email, wrong password, wrong, expired or already used code, or no TOTP set up. */
                 401: {
                     headers: {
                         [name: string]: unknown;
