@@ -183,23 +183,44 @@ export function createSessionApi({ frontOrigin }) {
     return res.end();
   }
 
-  function me(req, res) {
+  /**
+   * The same guards for every endpoint of a business: 401 without a session, 403 without a selected business, 404
+   * without a membership. `failure` says which; otherwise the business, the role and whether it is read only.
+   */
+  function accessOf(req) {
     const session = currentSession(req);
-    if (!session) return fail(res, 401, "unauthenticated");
-    if (session.bid === null) return fail(res, 403, "business_not_selected");
+    if (!session) return { failure: { status: 401, error: "unauthenticated" } };
+    if (session.bid === null) {
+      return { failure: { status: 403, error: "business_not_selected" } };
+    }
     const membership = businessesOf(session.userId).find(
       (business) => business.id === session.bid,
     );
-    if (!membership) return fail(res, 404, "business_not_found");
-    const user = state.users.find(
-      (candidate) => candidate.id === session.userId,
-    );
+    if (!membership) {
+      return { failure: { status: 404, error: "business_not_found" } };
+    }
     const business = FIXTURES.businesses.find(
       (candidate) => candidate.id === session.bid,
     );
-    const readOnly = !["trial", "active"].includes(business.status);
+    return {
+      userId: session.userId,
+      businessId: business.id,
+      business,
+      role: membership.role,
+      readOnly: !["trial", "active"].includes(business.status),
+    };
+  }
+
+  function me(req, res) {
+    const access = accessOf(req);
+    if (access.failure)
+      return fail(res, access.failure.status, access.failure.error);
+    const { business, readOnly } = access;
+    const user = state.users.find(
+      (candidate) => candidate.id === access.userId,
+    );
     const shown =
-      membership.role === "owner"
+      access.role === "owner"
         ? {
             id: business.id,
             name: business.name,
@@ -213,7 +234,7 @@ export function createSessionApi({ frontOrigin }) {
       200,
       {
         user: { id: user.id, name: user.name, email: user.email },
-        role: membership.role,
+        role: access.role,
         business: shown,
       },
       { "cache-control": "no-store" },
@@ -254,5 +275,5 @@ export function createSessionApi({ frontOrigin }) {
     return logout(res);
   }
 
-  return { handle, reset };
+  return { handle, reset, accessOf };
 }

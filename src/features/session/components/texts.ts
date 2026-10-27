@@ -17,6 +17,9 @@ export const ACCOUNT_TEXTS = {
   signOutFailed: "No pudimos cerrar la sesión. Probá de nuevo.",
 };
 
+export const READ_ONLY_NOTICE =
+  "Tu negocio está en solo lectura: podés ver todo, pero no cargar ni cambiar nada. Escribinos para reactivarlo.";
+
 export const PASSWORD_HINT =
   "Al menos 8 caracteres y uno que no sea letra ni número, como un espacio o un signo.";
 

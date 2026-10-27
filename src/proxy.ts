@@ -13,5 +13,10 @@ export function proxy(request: NextRequest) {
   return NextResponse.redirect(new URL(ROUTES.signIn, request.url));
 }
 
-/** Literal and narrow on purpose: Next reads it statically, and a mistake here must not reach `/`, `/api` or `_next`. */
-export const config = { matcher: ["/cuenta", "/elegir-negocio"] };
+/**
+ * Literal and narrow on purpose: Next reads it statically, and a mistake here must not reach `/`, `/api` or `_next`.
+ * The items are guarded at `/articulos` and under it.
+ */
+export const config = {
+  matcher: ["/cuenta", "/elegir-negocio", "/articulos", "/articulos/:path*"],
+};

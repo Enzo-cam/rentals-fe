@@ -50,6 +50,8 @@ export const USERS = {
   juan: { email: "juan@example.com", password: "clave de juan 1" },
   beto: { email: "beto@example.com", password: "clave de beto 1" },
   nora: { email: "nora@example.com", password: "clave de nora 1" },
+  marta: { email: "marta@example.com", password: "clave de marta 1" },
+  olga: { email: "olga@example.com", password: "clave de olga 1" },
 };
 
 /** `networkidle` so the form is hydrated: a submit before that would be a native one. */

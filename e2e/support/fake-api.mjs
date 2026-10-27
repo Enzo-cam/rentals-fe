@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 
+import { createItemsApi, isItemsPath } from "./fake-items-api.mjs";
 import { SESSION_PATHS, createSessionApi } from "./fake-session-api.mjs";
 
 const PORT = Number(process.env.FAKE_API_PORT ?? 4010);
@@ -10,6 +11,7 @@ const HANG_MS = 15_000;
 const sessionApi = createSessionApi({
   frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
 });
+const itemsApi = createItemsApi({ accessOf: sessionApi.accessOf });
 
 let healthMode = "ok";
 let lastRequest = null;
@@ -38,10 +40,15 @@ async function readText(req) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-/** Takes the first matching override and uses up one of its `times`. */
-function takeOverride(method, path) {
+/** Takes the first matching override (its `query`, if any, has to be in the URL) and uses up one of its `times`. */
+function takeOverride(method, path, url) {
   const index = overrides.findIndex(
-    (candidate) => candidate.method === method && candidate.path === path,
+    (candidate) =>
+      candidate.method === method &&
+      candidate.path === path &&
+      Object.entries(candidate.query ?? {}).every(
+        ([name, value]) => url.searchParams.get(name) === value,
+      ),
   );
   if (index === -1) return null;
   const found = overrides[index];
@@ -54,7 +61,8 @@ function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function session(req, res, path, url) {
+/** Records the request and applies the overrides before the `api` that owns the path answers. */
+async function viaApi(api, req, res, path, url) {
   const entry = {
     method: req.method,
     path,
@@ -66,13 +74,13 @@ async function session(req, res, path, url) {
   const text = await readText(req);
   entry.body = text === "" ? null : text;
 
-  const override = takeOverride(req.method, path);
+  const override = takeOverride(req.method, path, url);
   if (override?.delayMs) await wait(override.delayMs);
   if (override?.mode === "reset") return req.socket.destroy();
   if (override?.status !== undefined) {
     return json(res, override.status, override.body ?? {}, override.headers);
   }
-  return sessionApi.handle(req, res, path, text);
+  return api.handle(req, res, path, text);
 }
 
 function control(req, res, path) {
@@ -136,7 +144,10 @@ const server = createServer(async (req, res) => {
     return json(res, 404, { error: "not_found" });
   }
 
-  if (SESSION_PATHS.has(path)) return session(req, res, path, url);
+  if (SESSION_PATHS.has(path)) {
+    return viaApi(sessionApi, req, res, path, url);
+  }
+  if (isItemsPath(path)) return viaApi(itemsApi, req, res, path, url);
 
   if (path.startsWith("/echo")) {
     const bodyLength = await readBody(req);
