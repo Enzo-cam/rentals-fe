@@ -95,6 +95,14 @@ describe("rejectedPreviewOf", () => {
       null,
     );
     expect(rejectedPreviewOf(rejection({ preview: 3 }))).toBe(null);
+    for (const wrong of [
+      { rows: [], valid: "yes" },
+      { rows: [3], valid: true },
+      { rows: [{ errors: "none" }], valid: true },
+      { rows: [{ errors: [] }] },
+    ]) {
+      expect(rejectedPreviewOf(rejection({ preview: wrong }))).toBe(null);
+    }
     expect(rejectedPreviewOf(rejection({ preview }, 400))).toBe(null);
     expect(rejectedPreviewOf(rejected(500, null))).toBe(null);
     expect(rejectedPreviewOf(new Error("boom"))).toBe(null);

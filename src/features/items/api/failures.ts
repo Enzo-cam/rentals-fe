@@ -14,7 +14,9 @@ export function isItemMissing(error: unknown): boolean {
   );
 }
 
-type TakenItem = { id: string; name: string; archived: boolean };
+type TakenItem = components["schemas"]["ItemConflict"]["item"];
+
+type ImportPreview = components["schemas"]["ItemImportPreview"];
 
 function isTakenItem(value: unknown): value is TakenItem {
   return (
@@ -61,27 +63,32 @@ export function isOutOfServiceExceeded(error: unknown): boolean {
   );
 }
 
+function isObject(value: unknown): value is object {
+  return typeof value === "object" && value !== null;
+}
+
+function isImportPreview(value: unknown): value is ImportPreview {
+  return (
+    isObject(value) &&
+    "valid" in value &&
+    typeof value.valid === "boolean" &&
+    "rows" in value &&
+    Array.isArray(value.rows) &&
+    value.rows.every(
+      (row) => isObject(row) && "errors" in row && Array.isArray(row.errors),
+    )
+  );
+}
+
 /**
  * A 422 `import_rejected` carries the preview again with the rows that failed marked: that is what the screen shows
- * instead of its own preview. `null` for any other failure.
+ * instead of its own preview. `null` for any other failure, or a body whose preview does not have the shape the screen
+ * reads (rows with their errors, and `valid`).
  */
-export function rejectedPreviewOf(
-  error: unknown,
-): components["schemas"]["ItemImportPreview"] | null {
+export function rejectedPreviewOf(error: unknown): ImportPreview | null {
   const failure = failureOf(error);
   if (failure?.kind !== "rejected" || failure.status !== 422) return null;
   const body = error instanceof ApiError ? error.body : undefined;
-  if (typeof body !== "object" || body === null || !("preview" in body)) {
-    return null;
-  }
-  const { preview } = body;
-  if (
-    typeof preview !== "object" ||
-    preview === null ||
-    !("rows" in preview) ||
-    !Array.isArray(preview.rows)
-  ) {
-    return null;
-  }
-  return preview as components["schemas"]["ItemImportPreview"];
+  if (!isObject(body) || !("preview" in body)) return null;
+  return isImportPreview(body.preview) ? body.preview : null;
 }
