@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { ReactNode } from "react";
-import { useForm, type Path } from "react-hook-form";
+import { useForm, type Path, type UseFormReturn } from "react-hook-form";
 
 import { describeError } from "@/api/failure-message";
 import { Button } from "@/components/ui/button";
@@ -10,13 +10,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 import { isOutOfServiceExceeded, takenItemOf } from "../api/failures";
-import { EMPTY_ITEM_FORM, itemFormSchema, type ItemFormValues } from "../types";
+import {
+  editFormSchemaOf,
+  EMPTY_ITEM_FORM,
+  itemFormSchema,
+  type ItemFormValues,
+} from "../types";
 import { TakenItemNotice } from "./taken-item-notice";
 import { FORM_ERRORS, FORM_TEXTS, OUT_OF_SERVICE_EXCEEDED } from "./texts";
 
 type ItemFormProps = {
   defaultValues?: ItemFormValues;
-  onSubmit: (values: ItemFormValues) => string | void;
+  onSubmit: (values: ItemFormValues, opened: ItemFormValues) => string | void;
   busy: boolean;
   error: unknown;
 };
@@ -33,7 +38,9 @@ function ErrorText({ children }: { children: ReactNode }) {
  * `method="post"` is a net for a submit before hydration. Errors of shape come from the schema and the ones of the
  * API show under the field they are about: the name or the code that is taken, the out of service units that do not
  * fit; anything else goes above the button. `onSubmit` may answer with a text to show there instead of sending
- * (the edit with nothing changed). The values stay as typed after a failure.
+ * (the edit with nothing changed). The values stay as typed after a failure. With `defaultValues` (the edit), the form
+ * keeps what it opened with and gives it to `onSubmit` and to the schema: what the item is now, on the server, is not
+ * its business.
  */
 export function ItemForm({
   defaultValues = EMPTY_ITEM_FORM,
@@ -41,15 +48,24 @@ export function ItemForm({
   busy,
   error,
 }: ItemFormProps) {
+  const form: UseFormReturn<ItemFormValues> = useForm<ItemFormValues>({
+    resolver: (values, context, options) =>
+      zodResolver(
+        defaultValues ? editFormSchemaOf(openedValues()) : itemFormSchema,
+      )(values, context, options),
+    defaultValues,
+  });
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<ItemFormValues>({
-    resolver: zodResolver(itemFormSchema),
-    defaultValues,
-  });
+  } = form;
+
+  function openedValues(): ItemFormValues {
+    return { ...EMPTY_ITEM_FORM, ...form.formState.defaultValues };
+  }
+
   const taken = takenItemOf(error);
   const outOfServiceExceeded = isOutOfServiceExceeded(error);
   const otherError = Boolean(error) && !taken && !outOfServiceExceeded;
@@ -79,7 +95,7 @@ export function ItemForm({
       method="post"
       noValidate
       onSubmit={handleSubmit((values) => {
-        const notice = onSubmit(values);
+        const notice = onSubmit(values, openedValues());
         if (notice) setError("root.notice", { message: notice });
       })}
       className="flex flex-col gap-4"

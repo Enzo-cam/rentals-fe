@@ -5,8 +5,17 @@ import {
   overrideNext,
   resetFakeApi,
 } from "../support/fake-api-control";
-import { COPA, ITEM_IDS, openItemsScreen, SILLA } from "../support/items";
+import {
+  COPA,
+  ITEM_IDS,
+  openItemsScreen,
+  SILLA,
+  silla,
+} from "../support/items";
+import type { components } from "../../src/api/schema";
 import { signInThroughProxy, USERS } from "../support/session";
+
+type ItemWithPrice = components["schemas"]["ItemWithPrice"];
 
 const EDIT_SILLA = `/articulos/${ITEM_IDS.silla}/editar`;
 const OUT_OF_SERVICE_TEXT =
@@ -138,4 +147,54 @@ test("an item that does not exist says so, with no form", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: "Volver a los artículos" }),
   ).toBeVisible();
+});
+
+/** AC-26 */
+test("an item with cents in the price saves the rest without sending the price", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "GET",
+    path: `/items/${ITEM_IDS.silla}`,
+    status: 200,
+    body: { ...silla, priceCents: 150050 } satisfies ItemWithPrice,
+  });
+  await openItemsScreen(page, EDIT_SILLA);
+  await expect(field(page, "Precio de lista")).toHaveValue("1.500,50");
+  await field(page, "Stock total").fill("130");
+  await page.getByRole("button", { name: "Guardar" }).click();
+  await page.waitForURL(`**/articulos/${ITEM_IDS.silla}`);
+  expect((await patches(request))[0].body).toBe('{"totalStock":130}');
+});
+
+/** AC-26 */
+test("a field the person did not touch is not sent, even if the server changed it while the form was open", async ({
+  page,
+  request,
+}) => {
+  await openItemsScreen(page, EDIT_SILLA);
+  await expect(field(page, "Stock total")).toHaveValue("120");
+  await overrideNext(request, {
+    method: "GET",
+    path: `/items/${ITEM_IDS.silla}`,
+    status: 200,
+    body: { ...silla, totalStock: 150 } satisfies ItemWithPrice,
+  });
+  await page.evaluate(() =>
+    window.dispatchEvent(new Event("visibilitychange")),
+  );
+  await expect
+    .poll(
+      async () =>
+        (await apiRequests(request)).filter(
+          (call) => call.method === "GET" && call.path.startsWith("/items/"),
+        ).length,
+    )
+    .toBe(2);
+
+  await field(page, "Precio de lista").fill("1.800");
+  await page.getByRole("button", { name: "Guardar" }).click();
+  await page.waitForURL(`**/articulos/${ITEM_IDS.silla}`);
+  expect((await patches(request))[0].body).toBe('{"priceCents":180000}');
 });

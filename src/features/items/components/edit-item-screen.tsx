@@ -20,14 +20,13 @@ function EditForm({ id }: { id: string }) {
   const update = useUpdateItem(id);
   const leaving = isLeavingSession(failureOf(item.error));
 
-  if (item.data) {
-    const current = item.data;
+  if (item.data && item.isFetchedAfterMount) {
     return (
       <ItemForm
-        key={current.id}
-        defaultValues={formValuesOf(current)}
-        onSubmit={(values) => {
-          const patch = patchOf(current, values);
+        key={item.data.id}
+        defaultValues={formValuesOf(item.data)}
+        onSubmit={(values, opened) => {
+          const patch = patchOf(opened, values);
           if (Object.keys(patch).length === 0) return FORM_TEXTS.unchanged;
           update.submitOnce(patch);
         }}
@@ -36,7 +35,9 @@ function EditForm({ id }: { id: string }) {
       />
     );
   }
-  if (item.isPending) return <p role="status">{DETAIL_TEXTS.loading}</p>;
+  if (item.data || item.isPending) {
+    return <p role="status">{DETAIL_TEXTS.loading}</p>;
+  }
   if (isItemMissing(item.error)) {
     return (
       <div className="flex flex-col gap-2">

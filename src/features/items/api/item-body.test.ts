@@ -91,16 +91,16 @@ describe("formValuesOf", () => {
 
 describe("patchOf", () => {
   const edit = (values: Partial<ItemFormValues>) =>
-    JSON.stringify(patchOf(SILLA, { ...UNTOUCHED, ...values }));
+    JSON.stringify(patchOf(UNTOUCHED, { ...UNTOUCHED, ...values }));
 
   it("is empty when nothing changed, also when the only difference is a space around a text", () => {
-    expect(patchOf(SILLA, UNTOUCHED)).toEqual({});
+    expect(patchOf(UNTOUCHED, UNTOUCHED)).toEqual({});
     expect(
-      patchOf(SILLA, { ...UNTOUCHED, name: "Silla Tiffany blanca " }),
+      patchOf(UNTOUCHED, { ...UNTOUCHED, name: "Silla Tiffany blanca " }),
     ).toEqual({});
-    expect(patchOf(SILLA, { ...UNTOUCHED, category: "  Mobiliario" })).toEqual(
-      {},
-    );
+    expect(
+      patchOf(UNTOUCHED, { ...UNTOUCHED, category: "  Mobiliario" }),
+    ).toEqual({});
   });
 
   it("sends only the price when only the price changed", () => {
@@ -135,9 +135,40 @@ describe("patchOf", () => {
   it("reads an empty out of service as 0, so it is not a change for an item with none", () => {
     expect(
       patchOf(
-        { ...SILLA, outOfService: 0 },
+        { ...UNTOUCHED, outOfService: "0" },
         { ...UNTOUCHED, outOfService: "" },
       ),
     ).toEqual({});
   });
+
+  it("reads the same number written another way as no change", () => {
+    expect(
+      patchOf(
+        { ...UNTOUCHED, totalStock: "1500", price: "1500" },
+        { ...UNTOUCHED, totalStock: "1.500", price: "$ 1.500" },
+      ),
+    ).toEqual({});
+  });
+
+  it.each([
+    ["an untouched price with cents", { price: "1.500,50" }, {}, {}],
+    [
+      "an untouched price with cents, while the stock changed",
+      { price: "1.500,50" },
+      { totalStock: "150" },
+      { totalStock: 150 },
+    ],
+    [
+      "a price with cents that the person replaced with whole pesos",
+      { price: "1.500,50" },
+      { price: "1.800" },
+      { priceCents: 180000 },
+    ],
+  ])(
+    "never sends a field equal to the one the form opened with: %s",
+    (_label, opened, typed, expected) => {
+      const defaults = { ...UNTOUCHED, ...opened };
+      expect(patchOf(defaults, { ...defaults, ...typed })).toEqual(expected);
+    },
+  );
 });

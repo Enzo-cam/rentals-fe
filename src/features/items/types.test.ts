@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { itemFormSchema, type ItemFormValues } from "./types";
+import { editFormSchemaOf, itemFormSchema, type ItemFormValues } from "./types";
 
 const VALID: ItemFormValues = {
   name: "Mesa redonda",
@@ -100,5 +100,31 @@ describe("itemFormSchema", () => {
         description: "a".repeat(500),
       }),
     ).toEqual({});
+  });
+});
+
+describe("editFormSchemaOf", () => {
+  const OPENED: ItemFormValues = { ...VALID, price: "1.500,50" };
+  const wrong =
+    "Escribí el precio en pesos, sin centavos: 1500, 1.500 o $ 1.500.";
+  const priceMessage = (opened: ItemFormValues, price: string) => {
+    const result = editFormSchemaOf(opened).safeParse({ ...opened, price });
+    return result.success ? undefined : result.error.issues[0]?.message;
+  };
+
+  it("lets the price the form opened with go through, even with cents", () => {
+    expect(priceMessage(OPENED, "1.500,50")).toBeUndefined();
+    expect(priceMessage(OPENED, " 1.500,50 ")).toBeUndefined();
+  });
+
+  it("checks the price as soon as it is not the one the form opened with", () => {
+    expect(priceMessage(OPENED, "1.800")).toBeUndefined();
+    expect(priceMessage(OPENED, "1.500,51")).toBe(wrong);
+    expect(priceMessage(OPENED, "")).toBe(wrong);
+  });
+
+  it("keeps checking every other field", () => {
+    const result = editFormSchemaOf(OPENED).safeParse({ ...OPENED, name: "" });
+    expect(result.success).toBe(false);
   });
 });

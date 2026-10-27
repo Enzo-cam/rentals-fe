@@ -31,6 +31,8 @@ export type ListedItem =
 
 export const MAX_STOCK = 100_000;
 const STOCK_MESSAGE = "Escribí un número entero de 0 a 100.000.";
+const PRICE_MESSAGE =
+  "Escribí el precio en pesos, sin centavos: 1500, 1.500 o $ 1.500.";
 
 function fitsIn(max: number) {
   return (text: string) => Array.from(text.trim()).length <= max;
@@ -59,12 +61,7 @@ export const itemFormSchema = z.object({
         text.trim() === "" || parseWholeNumber(text, MAX_STOCK) !== null,
       STOCK_MESSAGE,
     ),
-  price: z
-    .string()
-    .refine(
-      (text) => parsePesos(text) !== null,
-      "Escribí el precio en pesos, sin centavos: 1500, 1.500 o $ 1.500.",
-    ),
+  price: z.string().refine((text) => parsePesos(text) !== null, PRICE_MESSAGE),
   category: z
     .string()
     .refine(fitsIn(60), "La categoría puede tener hasta 60 caracteres."),
@@ -77,6 +74,23 @@ export const itemFormSchema = z.object({
 });
 
 export type ItemFormValues = z.infer<typeof itemFormSchema>;
+
+/**
+ * The schema of the edit form: the same, except that the price is only checked if it is not the one the form opened
+ * with. An item can carry cents (only through the API), which the form cannot write back, and whoever does not touch
+ * the price must still be able to save the rest.
+ */
+export function editFormSchemaOf(opened: ItemFormValues) {
+  return itemFormSchema.extend({
+    price: z
+      .string()
+      .refine(
+        (text) =>
+          text.trim() === opened.price.trim() || parsePesos(text) !== null,
+        PRICE_MESSAGE,
+      ),
+  });
+}
 
 export const EMPTY_ITEM_FORM: ItemFormValues = {
   name: "",
