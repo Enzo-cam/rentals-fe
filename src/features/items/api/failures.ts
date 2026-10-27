@@ -1,4 +1,4 @@
-import { ApiError, failureOf } from "../../../api/api-failure";
+import { ApiError, failureOf } from "@/api/api-failure";
 
 /**
  * The item is not there for this business: a 404 `item_not_found`, or a 400 `invalid_request` when the id in the URL

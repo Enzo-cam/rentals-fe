@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ApiError, type ApiFailure } from "../../../api/api-failure";
+import { ApiError, type ApiFailure } from "@/api/api-failure";
 
 import { isItemMissing, isOutOfServiceExceeded, takenItemOf } from "./failures";
 

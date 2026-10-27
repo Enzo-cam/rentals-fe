@@ -1,7 +1,6 @@
 import type { paths } from "@/api/schema";
-
-import { parsePesos } from "../../../lib/format/money";
-import { parseWholeNumber } from "../../../lib/format/whole-number";
+import { parsePesos } from "@/lib/format/money";
+import { parseWholeNumber } from "@/lib/format/whole-number";
 import { MAX_STOCK, type ItemFormValues } from "../types";
 
 export type CreateItemBody =

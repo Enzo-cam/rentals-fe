@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-import { parsePesos } from "../../lib/format/money";
-import { parseWholeNumber } from "../../lib/format/whole-number";
 import type { components, paths } from "@/api/schema";
+import { parsePesos } from "@/lib/format/money";
+import { parseWholeNumber } from "@/lib/format/whole-number";
 
 type ItemsQuery = NonNullable<paths["/items"]["get"]["parameters"]["query"]>;
 
