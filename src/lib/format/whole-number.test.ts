@@ -27,6 +27,9 @@ describe("parseWholeNumber", () => {
     "abc",
     "1e3",
     "1..500",
+    "0.500",
+    "01.500",
+    "00.500",
     "99999999999999999999",
   ])("must fail %j", (text) => {
     expect(parseWholeNumber(text, 100000)).toBeNull();

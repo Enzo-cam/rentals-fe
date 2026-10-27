@@ -49,6 +49,9 @@ describe("parsePesos", () => {
     "100000001",
     "1..500",
     ".500",
+    "0.500",
+    "$ 0.500",
+    "$0.500",
     "99999999999999999999",
   ])("must fail %j", (text) => {
     expect(parsePesos(text)).toBeNull();

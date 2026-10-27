@@ -72,6 +72,7 @@ export function ArchiveActions({
           <AlertDialogFooter>
             <AlertDialogCancel>{ARCHIVE_TEXTS.cancel}</AlertDialogCancel>
             <Button
+              disabled={setArchived.isPending}
               onClick={() => {
                 setOpen(false);
                 setArchived.mutate(true);

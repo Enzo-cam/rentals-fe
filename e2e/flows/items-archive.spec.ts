@@ -194,3 +194,25 @@ test("while the POST travels the button is disabled", async ({
     await calls(request, "POST", `/items/${ITEM_IDS.copa}/archive`),
   ).toHaveLength(1);
 });
+
+/** AC-28 */
+test("two taps on the confirmation of the dialog send one POST /archive", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "POST",
+    path: `/items/${ITEM_IDS.copa}/archive`,
+    delayMs: 1000,
+  });
+  await openItemsScreen(page, `/articulos/${ITEM_IDS.copa}`);
+  await archiveButton(page).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Dar de baja" })
+    .dblclick();
+  await expect(page.getByText("Dado de baja", { exact: true })).toBeVisible();
+  expect(
+    await calls(request, "POST", `/items/${ITEM_IDS.copa}/archive`),
+  ).toHaveLength(1);
+});
