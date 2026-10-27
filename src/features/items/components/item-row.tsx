@@ -4,14 +4,14 @@ import { formatCents } from "@/lib/format/money";
 import { ROUTES } from "@/lib/routes";
 
 import type { ListedItem } from "../types";
-import { ITEMS_TEXTS } from "./texts";
+import { ITEMS_TEXTS, ROW_TEXTS } from "./texts";
 
 /** The price shows only if the object carries it: the API sends it to the roles that can view prices. */
 export function ItemRow({ item }: { item: ListedItem }) {
   const stock = [
-    `${item.totalStock} en total`,
+    ROW_TEXTS.total(item.totalStock),
     ...(item.outOfService > 0
-      ? [`${item.outOfService} fuera de servicio`]
+      ? [ROW_TEXTS.outOfService(item.outOfService)]
       : []),
     ...(item.archived ? [ITEMS_TEXTS.archived] : []),
   ].join(" · ");

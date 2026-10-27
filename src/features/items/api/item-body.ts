@@ -6,6 +6,18 @@ import { MAX_STOCK, type ItemFormValues, type ListedItem } from "../types";
 export type CreateItemBody =
   paths["/items"]["post"]["requestBody"]["content"]["application/json"];
 
+/** A value that must parse because the form schema already accepted it: if not, it is a bug, not input. */
+function mustParse(value: number | null): number {
+  if (value === null) {
+    throw new Error("the form values must pass their schema before being read");
+  }
+  return value;
+}
+
+function stockOf(text: string): number {
+  return text.trim() === "" ? 0 : mustParse(parseWholeNumber(text, MAX_STOCK));
+}
+
 function orNull(text: string): string | null {
   const trimmed = text.trim();
   return trimmed === "" ? null : trimmed;
@@ -16,20 +28,11 @@ function orNull(text: string): string | null {
  * trimmed, empty optionals as `null`, an empty out of service as 0. A value that does not parse is a bug, not input.
  */
 export function createBodyOf(values: ItemFormValues): CreateItemBody {
-  const totalStock = parseWholeNumber(values.totalStock, MAX_STOCK);
-  const outOfService =
-    values.outOfService.trim() === ""
-      ? 0
-      : parseWholeNumber(values.outOfService, MAX_STOCK);
-  const priceCents = parsePesos(values.price);
-  if (totalStock === null || outOfService === null || priceCents === null) {
-    throw new Error("createBodyOf needs values that passed itemFormSchema");
-  }
   return {
     name: values.name.trim(),
-    totalStock,
-    outOfService,
-    priceCents,
+    totalStock: mustParse(parseWholeNumber(values.totalStock, MAX_STOCK)),
+    outOfService: stockOf(values.outOfService),
+    priceCents: mustParse(parsePesos(values.price)),
     category: orNull(values.category),
     code: orNull(values.code),
     description: orNull(values.description),
@@ -52,17 +55,6 @@ export function formValuesOf(item: ListedItem): ItemFormValues {
   };
 }
 
-function fromSchema(value: number | null): number {
-  if (value === null) {
-    throw new Error("patchOf needs values that passed the form schema");
-  }
-  return value;
-}
-
-function stockOf(text: string): number {
-  return text.trim() === "" ? 0 : fromSchema(parseWholeNumber(text, MAX_STOCK));
-}
-
 /**
  * Only the keys that changed since the form opened (`opened` is what it was filled with, never the latest the server
  * sent: a field the person did not touch must not overwrite what somebody else changed meanwhile). Compared after the
@@ -83,7 +75,7 @@ export function patchOf(
     patch.outOfService = outOfService;
   }
   if (values.price.trim() !== opened.price.trim()) {
-    const priceCents = fromSchema(parsePesos(values.price));
+    const priceCents = mustParse(parsePesos(values.price));
     if (priceCents !== parsePesos(opened.price)) patch.priceCents = priceCents;
   }
   const category = orNull(values.category);

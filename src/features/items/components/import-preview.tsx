@@ -26,7 +26,7 @@ export function ImportPreview({ preview }: { preview: Preview }) {
           >
             <p>
               {[
-                `Línea ${row.line}`,
+                IMPORT_TEXTS.line(row.line),
                 row.name,
                 row.totalStock,
                 row.priceCents === null ? null : formatCents(row.priceCents),

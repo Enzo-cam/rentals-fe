@@ -10,6 +10,7 @@ export const IMPORT_TEXTS = {
   preview: "Ver vista previa",
   previewing: "Mirando la lista…",
   see: "Ver",
+  line: (n: number) => `Línea ${n}`,
   changed: "Cambiaste la lista: pedí la vista previa de nuevo.",
   confirming: "Cargando…",
   back: "Ver los artículos",

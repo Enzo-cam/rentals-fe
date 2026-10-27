@@ -8,6 +8,7 @@ import {
 
 const STATUSES: readonly ItemStatusFilter[] = ["active", "archived", "all"];
 const MAX_Q = 100;
+const MAX_STATUS = 20;
 const MAX_CATEGORY = 60;
 
 function textOf(
@@ -26,7 +27,7 @@ function textOf(
 export function parseItemFilters(
   params: Record<string, string | string[] | undefined>,
 ): ItemFilters {
-  const status = textOf(params.status, MAX_Q);
+  const status = textOf(params.status, MAX_STATUS);
   return {
     status:
       STATUSES.find((known) => known === status) ?? DEFAULT_ITEM_FILTERS.status,

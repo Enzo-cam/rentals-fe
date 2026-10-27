@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
 
 import { itemKeys } from "../api/keys";
+import type { CreateItemBody } from "../api/item-body";
 import { createItem } from "../api/requests";
 
 /**
@@ -24,7 +25,7 @@ export function useCreateItem() {
       router.push(ROUTES.item(item.id));
     },
   });
-  function submitOnce(body: Parameters<typeof createItem>[0]) {
+  function submitOnce(body: CreateItemBody) {
     if (queryClient.isMutating({ mutationKey }) > 0) return;
     mutation.mutate(body);
   }

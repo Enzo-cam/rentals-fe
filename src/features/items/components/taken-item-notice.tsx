@@ -7,14 +7,14 @@ import { ROUTES } from "@/lib/routes";
 
 import type { takenItemOf } from "../api/failures";
 import { useSetItemArchived } from "../hooks/use-set-item-archived";
+import { TAKEN_TEXTS } from "./texts";
 
 type Taken = NonNullable<ReturnType<typeof takenItemOf>>;
 
 function textOf({ field, item }: Taken): string {
-  const archived = item.archived ? ", dado de baja" : "";
   return field === "name"
-    ? `Ya tenés un artículo con este nombre${archived}.`
-    : `Este código ya lo usa «${item.name}»${archived}.`;
+    ? TAKEN_TEXTS.name(item.archived)
+    : TAKEN_TEXTS.code(item.name, item.archived);
 }
 
 /**
@@ -28,7 +28,7 @@ export function TakenItemNotice({ taken }: { taken: Taken }) {
     <div role="alert" className="flex flex-col gap-1 text-sm">
       <p className="text-destructive">{textOf(taken)}</p>
       <Link href={ROUTES.item(taken.item.id)} className="underline">
-        Ver «{taken.item.name}»
+        {TAKEN_TEXTS.see(taken.item.name)}
       </Link>
       {taken.item.archived && (
         <Button
@@ -40,7 +40,7 @@ export function TakenItemNotice({ taken }: { taken: Taken }) {
             })
           }
         >
-          Reactivar «{taken.item.name}»
+          {TAKEN_TEXTS.reactivate(taken.item.name)}
         </Button>
       )}
       {reactivate.isError && <p>{describeError(reactivate.error)}</p>}

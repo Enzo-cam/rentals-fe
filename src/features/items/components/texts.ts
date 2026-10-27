@@ -9,6 +9,20 @@ export const ITEMS_TEXTS = {
   archived: "Dado de baja",
 };
 
+export const ROW_TEXTS = {
+  total: (n: number) => `${n} en total`,
+  outOfService: (n: number) => `${n} fuera de servicio`,
+};
+
+export const TAKEN_TEXTS = {
+  name: (archived: boolean) =>
+    `Ya tenés un artículo con este nombre${archived ? ", dado de baja" : ""}.`,
+  code: (name: string, archived: boolean) =>
+    `Este código ya lo usa «${name}»${archived ? ", dado de baja" : ""}.`,
+  see: (name: string) => `Ver «${name}»`,
+  reactivate: (name: string) => `Reactivar «${name}»`,
+};
+
 export const DETAIL_TEXTS = {
   loading: "Cargando el artículo…",
   missing: "Este artículo no existe o no es de tu negocio.",
