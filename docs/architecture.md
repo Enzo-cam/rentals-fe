@@ -107,11 +107,13 @@ Un Server Component de un feature pide datos con una función de `features/<f>/a
 | Qué | Dónde vive | No va en |
 |---|---|---|
 | Datos del servidor | React Query | `useState`, contexto |
-| Filtros, fechas consultadas, pestaña activa, paginación | La URL (`searchParams`) | `useState` |
+| Filtros, fechas consultadas, pestaña activa | La URL (`searchParams`) | `useState` |
 | Campos de formulario | react-hook-form + Zod (solo forma) | `useState` por campo |
 | Algo que se calcula de otro estado | Se calcula al renderizar | `useState` + `useEffect` |
 | Sesión y negocio activo | La API (`GET /me`) vía React Query | Contexto propio, `localStorage` |
 | Efímero de UI: diálogo abierto, menú desplegado, paso de un asistente | `useState`, local al componente | Global |
+
+Las páginas de una lista por cursor ("Ver más") son datos del servidor y viven en React Query (`useInfiniteQuery`); al recargar se vuelve a la primera página (ADR-0007 de `rentals-be`).
 
 - No hay librería de estado global (ni Redux ni Zustand). Si aparece la necesidad, se cambia este documento primero.
 - Un `useState` que no sea efímero de UI es un hallazgo de revisión.

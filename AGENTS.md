@@ -34,7 +34,7 @@ Lo que hay hoy (la estructura objetivo completa está en `docs/architecture.md` 
 
 ```text
 src/
-├── proxy.ts                    guardia optimista de /cuenta y /elegir-negocio: sin cookie, 307 a /ingresar
+├── proxy.ts                    guardia optimista de /cuenta, /elegir-negocio y /articulos (y lo que cuelga): sin cookie, 307 a /ingresar
 ├── app/
 │   ├── layout.tsx              <html lang="es-AR">, metadata base
 │   ├── (publico)/page.tsx      "/": estado de la API (Server Component, noindex)
@@ -43,9 +43,15 @@ src/
 │   ├── (app)/definir-contrasena/  definir la contraseña con el link de WhatsApp (el token va en el fragmento)
 │   ├── (app)/elegir-negocio/   elegir negocio si el usuario tiene varios
 │   ├── (app)/cuenta/           quién soy, negocio, rol y salir
+│   ├── (app)/articulos/        lista y búsqueda; nuevo/, [id]/ (detalle), [id]/editar/ y cargar-lista/
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
 │   ├── health/                 llamada a GET /health y su tarjeta de estado
+│   ├── items/                  artículos: lista, detalle, alta, edición, baja y carga por lista (se importa solo por index.ts):
+│   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas y acceso por rol
+│   │   ├── hooks/              use-items, use-item, use-item-categories, use-create-item, use-update-item,
+│   │   │                       use-set-item-archived, use-item-import y use-item-access
+│   │   └── components/         pantallas, formulario, vista previa de la carga, textos y la guardia ManageGate
 │   └── session/                sesión de los usuarios de los negocios (se importa solo por index.ts):
 │       ├── api/                keys, requests (login, contraseña, negocios, /me, logout) y destino al entrar
 │       ├── hooks/              use-sign-in, use-define-password, use-my-businesses, use-select-business, use-me,
@@ -62,9 +68,11 @@ src/
 │   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
 │   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
 │   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
-├── components/ui/              shadcn/ui (card, button, input, label)
-└── lib/                        routes.ts (rutas y destino al entrar); format/ y effects/ llegan con su primer uso
-e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local, con sesión)
+├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog)
+└── lib/                        routes.ts (rutas y destino al entrar); format/ (money y whole-number: único lugar
+                                que da formato y lee plata y enteros); effects/ llega con su primer uso
+e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local: fake-session-api y
+                                fake-items-api, con sus fixtures)
 scripts/                        api-sync, api-check, check-client-env
 ```
 
