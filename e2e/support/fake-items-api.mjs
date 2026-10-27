@@ -63,7 +63,7 @@ export function createItemsApi({ accessOf, frontOrigin }) {
         nextCursor: null,
       });
     }
-    if (req.method === "POST") {
+    if (req.method === "POST" || req.method === "PATCH") {
       if (!JSON_MEDIA_TYPE.test(req.headers["content-type"] ?? "")) {
         return fail(res, 415, "unsupported_media_type");
       }
@@ -82,12 +82,13 @@ export function createItemsApi({ accessOf, frontOrigin }) {
       }
     }
     const id = path.match(/^\/items\/([^/]+)$/)?.[1];
-    if (req.method === "GET" && id !== undefined) {
+    if ((req.method === "GET" || req.method === "PATCH") && id !== undefined) {
       if (!UUID.test(id)) return fail(res, 400, "invalid_request");
       const found = store.find(
         (item) => item.id === id && item.businessId === access.businessId,
       );
       if (!found) return fail(res, 404, "item_not_found");
+      if (req.method === "PATCH") Object.assign(found, JSON.parse(rawBody));
       return json(res, 200, withoutBusiness(found));
     }
     return fail(res, 404, "not_found");

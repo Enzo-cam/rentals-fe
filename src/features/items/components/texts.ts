@@ -12,6 +12,7 @@ export const DETAIL_TEXTS = {
   loading: "Cargando el artículo…",
   missing: "Este artículo no existe o no es de tu negocio.",
   back: "Volver a los artículos",
+  edit: "Editar",
   totalStock: "Stock total",
   outOfService: "Fuera de servicio",
   price: "Precio de lista",
@@ -34,6 +35,7 @@ export const FORM_TEXTS = {
   save: "Guardar",
   saving: "Guardando…",
   loading: "Cargando…",
+  unchanged: "No cambiaste nada.",
 };
 
 /** Screen texts of the API codes for the item form. */

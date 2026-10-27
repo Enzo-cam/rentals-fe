@@ -136,3 +136,30 @@ test("Olga, who opens /articulos/nuevo by URL, ends on /articulos with the notic
   await page.waitForURL(/\/articulos$/);
   await expect(page.getByText("Tu negocio está en solo lectura")).toBeVisible();
 });
+
+/** AC-6, AC-27 */
+test("Beto, who opens an edit page by URL, ends on /articulos and nothing is sent", async ({
+  page,
+  request,
+}) => {
+  await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
+  await page.goto(`/articulos/${ITEM_IDS.silla}/editar`);
+  await page.waitForURL(/\/articulos$/);
+  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  const writes = (await apiRequests(request)).filter(
+    (call) =>
+      call.path.startsWith("/items") &&
+      (call.method === "POST" || call.method === "PATCH"),
+  );
+  expect(writes).toEqual([]);
+});
+
+/** Derived 1 */
+test("Olga, whose business is read only, is sent from an edit page to /articulos with the notice", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.olga.email, USERS.olga.password);
+  await page.goto(`/articulos/${ITEM_IDS.sillaNegra}/editar`);
+  await page.waitForURL(/\/articulos$/);
+  await expect(page.getByText("Tu negocio está en solo lectura")).toBeVisible();
+});

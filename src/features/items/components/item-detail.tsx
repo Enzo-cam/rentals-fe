@@ -89,6 +89,11 @@ export function ItemDetail({ id }: { id: string }) {
           </Button>
         </div>
       )}
+      {item.data && access.canManage && (
+        <Link href={ROUTES.editItem(item.data.id)} className={buttonVariants()}>
+          {DETAIL_TEXTS.edit}
+        </Link>
+      )}
       {back}
     </div>
   );

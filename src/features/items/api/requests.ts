@@ -3,7 +3,7 @@ import { browserApi } from "@/api/browser-client";
 import type { paths } from "@/api/schema";
 
 import type { ItemFilters } from "../types";
-import type { CreateItemBody } from "./item-body";
+import type { CreateItemBody, UpdateItemBody } from "./item-body";
 
 /** The cursor belongs to the filters it came with; `limit` is never sent, so the API picks the page size. */
 export function listItems(filters: ItemFilters, cursor: string | null) {
@@ -32,5 +32,11 @@ export function listItemCategories(cursor: string | null) {
         query: cursor === null ? { limit: 100 } : { limit: 100, cursor },
       },
     }),
+  );
+}
+
+export function updateItem(id: string, body: UpdateItemBody) {
+  return unwrap(
+    browserApi.PATCH("/items/{id}", { params: { path: { id } }, body }),
   );
 }

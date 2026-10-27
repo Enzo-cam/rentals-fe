@@ -16,7 +16,7 @@ import { FORM_ERRORS, FORM_TEXTS, OUT_OF_SERVICE_EXCEEDED } from "./texts";
 
 type ItemFormProps = {
   defaultValues?: ItemFormValues;
-  onSubmit: (values: ItemFormValues) => void;
+  onSubmit: (values: ItemFormValues) => string | void;
   busy: boolean;
   error: unknown;
 };
@@ -32,7 +32,8 @@ function ErrorText({ children }: { children: ReactNode }) {
 /**
  * `method="post"` is a net for a submit before hydration. Errors of shape come from the schema and the ones of the
  * API show under the field they are about: the name or the code that is taken, the out of service units that do not
- * fit; anything else goes above the button. The values stay as typed after a failure.
+ * fit; anything else goes above the button. `onSubmit` may answer with a text to show there instead of sending
+ * (the edit with nothing changed). The values stay as typed after a failure.
  */
 export function ItemForm({
   defaultValues = EMPTY_ITEM_FORM,
@@ -43,6 +44,7 @@ export function ItemForm({
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors },
   } = useForm<ItemFormValues>({
     resolver: zodResolver(itemFormSchema),
@@ -76,7 +78,10 @@ export function ItemForm({
     <form
       method="post"
       noValidate
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit((values) => {
+        const notice = onSubmit(values);
+        if (notice) setError("root.notice", { message: notice });
+      })}
       className="flex flex-col gap-4"
     >
       {field(
@@ -100,6 +105,7 @@ export function ItemForm({
         taken?.field === "code" && <TakenItemNotice taken={taken} />,
       )}
       {field("description", FORM_TEXTS.description)}
+      {errors.root?.notice && <p role="status">{errors.root.notice.message}</p>}
       {otherError && <ErrorText>{describeError(error, FORM_ERRORS)}</ErrorText>}
       <Button type="submit" size="lg" disabled={busy}>
         {busy ? FORM_TEXTS.saving : FORM_TEXTS.save}
