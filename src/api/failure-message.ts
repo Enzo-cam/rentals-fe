@@ -1,6 +1,18 @@
 import { failureOf, retryAfterMinutes, type ApiFailure } from "./api-failure";
 
-/** `byCode` holds the texts of one screen for the codes of the API; everything else gets the generic text. */
+const GENERIC_BY_CODE: Record<string, string> = {
+  read_only:
+    "No se guardó: tu negocio está en solo lectura. Escribinos para reactivarlo.",
+  forbidden:
+    "Tu rol no permite hacer esto. Si lo necesitás, pedíselo al dueño del negocio.",
+  business_not_found: "Ya no tenés acceso a este negocio.",
+  payload_too_large: "Es demasiado grande para mandarlo de una vez.",
+};
+
+/**
+ * `byCode` holds the texts of one screen for the codes of the API and wins over the generic text of the code;
+ * anything else gets the generic text.
+ */
 export function describeFailure(
   failure: ApiFailure,
   byCode: Record<string, string> = {},
@@ -8,8 +20,9 @@ export function describeFailure(
   switch (failure.kind) {
     case "rejected":
       return (
-        (failure.code !== null ? byCode[failure.code] : undefined) ??
-        "Algo salió mal. Probá de nuevo."
+        (failure.code !== null
+          ? (byCode[failure.code] ?? GENERIC_BY_CODE[failure.code])
+          : undefined) ?? "Algo salió mal. Probá de nuevo."
       );
     case "network":
       return "No pudimos conectarnos. Revisá tu conexión y probá de nuevo.";
