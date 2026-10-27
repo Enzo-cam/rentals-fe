@@ -15,6 +15,8 @@ import {
   LIVING,
   meOf,
   openItemsScreen,
+  pageWithoutPrices,
+  silla,
   SILLA,
 } from "../support/items";
 import { N1, signInThroughProxy, USERS } from "../support/session";
@@ -270,13 +272,22 @@ test("Marta, whose role changed to crew, is sent back to /articulos after a 403"
   request,
 }) => {
   await signInThroughProxy(page, USERS.marta.email, USERS.marta.password);
-  await openItemsScreen(page, "/articulos/nuevo");
+  await openItemsScreen(page, "/articulos");
+  await expect(page.getByRole("listitem").first()).toContainText("$ 1.500");
+  await page.getByRole("link", { name: "Nuevo artículo" }).click();
+  await page.waitForURL(/\/articulos\/nuevo$/);
   await fillForm(page);
   await overrideNext(request, {
     method: "POST",
     path: "/items",
     status: 403,
     body: { error: "forbidden" },
+  });
+  await overrideNext(request, {
+    method: "GET",
+    path: "/items",
+    status: 200,
+    body: pageWithoutPrices([silla], null),
   });
   await overrideNext(request, {
     method: "GET",
@@ -292,6 +303,8 @@ test("Marta, whose role changed to crew, is sent back to /articulos after a 403"
   await save(page).click();
   await page.waitForURL(/\/articulos$/);
   expect((await calls(request, "GET", "/me")).length).toBeGreaterThanOrEqual(2);
+  await expect(page.getByText(SILLA)).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("$");
 });
 
 /** AC-17 */

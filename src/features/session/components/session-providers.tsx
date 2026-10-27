@@ -7,12 +7,10 @@ import { isAccessChanged, isLeavingSession } from "@/api/api-failure";
 import { createQueryClient } from "@/api/query-client";
 import { ROUTES } from "@/lib/routes";
 
-import { sessionKeys } from "../api/keys";
-
 function makeQueryClient(): QueryClient {
   const client = createQueryClient((failure) => {
     if (isAccessChanged(failure)) {
-      void client.invalidateQueries({ queryKey: sessionKeys.me() });
+      void client.invalidateQueries();
       return;
     }
     if (!isLeavingSession(failure)) return;
@@ -36,7 +34,8 @@ function getQueryClient(): QueryClient {
 }
 
 /**
- * A 403 `read_only` or `forbidden` means the role or the state of the business changed, so `GET /me` is asked again.
+ * A 403 `read_only` or `forbidden` means the role or the state of the business changed, so every query is asked again:
+ * `GET /me` for the screens to adapt, and the rest so that what a role no longer sees (a price) does not stay cached.
  * A dead session (`401 unauthenticated`) or a session without a business clears the cache and leaves with a full
  * navigation, so no data of the previous session stays in memory (INV-FE-04).
  */
