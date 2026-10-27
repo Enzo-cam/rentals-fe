@@ -47,6 +47,7 @@ async function previewOf(
   request: APIRequestContext,
   text: string,
   body: unknown,
+  viaList = false,
 ) {
   await overrideNext(request, {
     method: "POST",
@@ -54,7 +55,13 @@ async function previewOf(
     status: 200,
     body,
   });
-  await openItemsScreen(page, "/articulos/cargar-lista");
+  if (viaList) {
+    await openItemsScreen(page, "/articulos");
+    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await page.getByRole("link", { name: "Cargar lista" }).click();
+  } else {
+    await openItemsScreen(page, "/articulos/cargar-lista");
+  }
   await list(page).fill(text);
   await page.getByRole("button", { name: "Ver vista previa" }).click();
 }
@@ -97,13 +104,18 @@ test("a valid preview confirms with the same text and says how many were created
   page,
   request,
 }) => {
-  await previewOf(page, request, VALID_IMPORT_TEXT, validPreview);
+  await previewOf(page, request, VALID_IMPORT_TEXT, validPreview, true);
   await overrideNext(request, {
     method: "POST",
     path: CONFIRM_PATH,
     status: 201,
     body: { created: 3 },
   });
+  const listRequests = async () =>
+    (await apiRequests(request)).filter(
+      (call) => call.method === "GET" && call.path === "/items",
+    ).length;
+  const before = await listRequests();
   await confirmButton(page, "Cargar 3 artículos").click();
   await expect(page.getByText("Cargamos 3 artículos.")).toBeVisible();
   await expect(list(page)).toHaveValue("");
@@ -114,14 +126,7 @@ test("a valid preview confirms with the same text and says how many were created
 
   await page.getByRole("link", { name: "Ver los artículos" }).click();
   await page.waitForURL(/\/articulos$/);
-  await expect
-    .poll(
-      async () =>
-        (await apiRequests(request)).filter(
-          (call) => call.method === "GET" && call.path === "/items",
-        ).length,
-    )
-    .toBeGreaterThan(0);
+  await expect.poll(listRequests).toBeGreaterThan(before);
 });
 
 /** AC-33 */
@@ -194,7 +199,7 @@ test("a list the API turns down says why, and an empty field sends nothing", asy
 });
 
 /** AC-36 */
-test("two fast taps on the confirmation send one POST", async ({
+test("two taps in the same tick on the confirmation send one POST", async ({
   page,
   request,
 }) => {
@@ -206,7 +211,14 @@ test("two fast taps on the confirmation send one POST", async ({
     body: { created: 3 },
     delayMs: 1500,
   });
-  await confirmButton(page, "Cargar 3 artículos").dblclick();
+  await expect(confirmButton(page, "Cargar 3 artículos")).toBeVisible();
+  await page.evaluate(() => {
+    const button = [...document.querySelectorAll("button")].find((b) =>
+      b.textContent?.startsWith("Cargar 3"),
+    );
+    button?.click();
+    button?.click();
+  });
   await expect(confirmButton(page, "Cargando…")).toBeDisabled();
   await expect(page.getByText("Cargamos 3 artículos.")).toBeVisible();
   expect(await posts(request, CONFIRM_PATH)).toHaveLength(1);

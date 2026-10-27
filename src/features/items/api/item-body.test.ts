@@ -150,6 +150,22 @@ describe("patchOf", () => {
     ).toEqual({});
   });
 
+  describe("an item with cents in the price", () => {
+    const WITH_CENTS: ItemFormValues = { ...UNTOUCHED, price: "1.500,50" };
+
+    it("is {} when nothing was touched, and does not throw", () => {
+      expect(patchOf(WITH_CENTS, { ...WITH_CENTS })).toEqual({});
+    });
+
+    it("sends only the stock when only the stock changed", () => {
+      expect(
+        JSON.stringify(
+          patchOf(WITH_CENTS, { ...WITH_CENTS, totalStock: "130" }),
+        ),
+      ).toBe('{"totalStock":130}');
+    });
+  });
+
   it.each([
     ["an untouched price with cents", { price: "1.500,50" }, {}, {}],
     [

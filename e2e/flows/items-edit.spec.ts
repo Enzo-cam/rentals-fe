@@ -181,17 +181,15 @@ test("a field the person did not touch is not sent, even if the server changed i
     status: 200,
     body: { ...silla, totalStock: 150 } satisfies ItemWithPrice,
   });
+  const refetched = page.waitForResponse(
+    (response) =>
+      response.request().method() === "GET" &&
+      response.url().endsWith(`/api/items/${ITEM_IDS.silla}`),
+  );
   await page.evaluate(() =>
     window.dispatchEvent(new Event("visibilitychange")),
   );
-  await expect
-    .poll(
-      async () =>
-        (await apiRequests(request)).filter(
-          (call) => call.method === "GET" && call.path.startsWith("/items/"),
-        ).length,
-    )
-    .toBe(2);
+  expect((await (await refetched).json()).totalStock).toBe(150);
 
   await field(page, "Precio de lista").fill("1.800");
   await page.getByRole("button", { name: "Guardar" }).click();

@@ -122,6 +122,11 @@ describe("editFormSchemaOf", () => {
     expect(priceMessage(OPENED, " 1.500,50 ")).toBeUndefined();
   });
 
+  it("accepts 1.500,50 untouched and rejects 1.600,50", () => {
+    expect(priceMessage(OPENED, "1.500,50")).toBeUndefined();
+    expect(priceMessage(OPENED, "1.600,50")).toBe(wrong);
+  });
+
   it("checks the price as soon as it is not the one the form opened with", () => {
     expect(priceMessage(OPENED, "1.800")).toBeUndefined();
     expect(priceMessage(OPENED, "1.500,51")).toBe(wrong);

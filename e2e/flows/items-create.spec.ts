@@ -247,7 +247,7 @@ test("a name held by an archived item says so, with the link", async ({
 });
 
 /** AC-16 */
-test("two fast taps on Guardar send one POST, and the button says Guardando…", async ({
+test("two submits in the same tick send one POST, and the button says Guardando…", async ({
   page,
   request,
 }) => {
@@ -258,7 +258,11 @@ test("two fast taps on Guardar send one POST, and the button says Guardando…",
   });
   await openItemsScreen(page, "/articulos/nuevo");
   await fillForm(page);
-  await save(page).dblclick();
+  await page.evaluate(() => {
+    const form = document.querySelector("form");
+    form?.requestSubmit();
+    form?.requestSubmit();
+  });
   const busy = page.getByRole("button", { name: "Guardando…" });
   await expect(busy).toBeVisible();
   await expect(busy).toBeDisabled();
