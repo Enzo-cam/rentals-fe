@@ -388,3 +388,19 @@ test("when /me does not load the alta shows the failure, and Reintentar asks aga
   await expect(page.getByLabel("Nombre", { exact: true })).toBeVisible();
   expect((await calls(request, "GET", "/me")).length).toBe(before + 1);
 });
+
+/** AC-12 */
+test("an empty price shows the price text and sends nothing", async ({
+  page,
+  request,
+}) => {
+  await openItemsScreen(page, "/articulos/nuevo");
+  await fillForm(page, { "Precio de lista": "" });
+  await save(page).click();
+  await expect(
+    page.getByText(
+      "Escribí el precio en pesos, sin centavos: 1500, 1.500 o $ 1.500.",
+    ),
+  ).toBeVisible();
+  expect(await calls(request, "POST", "/items")).toHaveLength(0);
+});

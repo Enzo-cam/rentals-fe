@@ -43,7 +43,7 @@ function ErrorText({ children }: { children: ReactNode }) {
  * its business.
  */
 export function ItemForm({
-  defaultValues = EMPTY_ITEM_FORM,
+  defaultValues,
   onSubmit,
   busy,
   error,
@@ -53,7 +53,7 @@ export function ItemForm({
       zodResolver(
         defaultValues ? editFormSchemaOf(openedValues()) : itemFormSchema,
       )(values, context, options),
-    defaultValues,
+    defaultValues: defaultValues ?? EMPTY_ITEM_FORM,
   });
   const {
     register,
