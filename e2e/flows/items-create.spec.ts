@@ -366,3 +366,23 @@ test("a 502 keeps the values, and Guardar sends another POST", async ({
   await page.waitForURL(DETAIL_URL);
   expect(await calls(request, "POST", "/items")).toHaveLength(2);
 });
+
+test("when /me does not load the alta shows the failure, and Reintentar asks again and shows the form", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "GET",
+    path: "/me",
+    times: 2,
+    status: 502,
+    body: { error: "upstream_unavailable" },
+  });
+  await openItemsScreen(page, "/articulos/nuevo");
+  await expect(page.getByText(UNAVAILABLE)).toBeVisible();
+  await expect(page.getByText("Cargando…")).toHaveCount(0);
+  const before = (await calls(request, "GET", "/me")).length;
+  await page.getByRole("button", { name: "Reintentar" }).click();
+  await expect(page.getByLabel("Nombre", { exact: true })).toBeVisible();
+  expect((await calls(request, "GET", "/me")).length).toBe(before + 1);
+});
