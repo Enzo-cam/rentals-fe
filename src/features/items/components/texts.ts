@@ -43,3 +43,16 @@ export const FORM_ERRORS = {
 
 export const OUT_OF_SERVICE_EXCEEDED =
   "No puede haber más unidades fuera de servicio que el stock total.";
+
+export const FILTER_TEXTS = {
+  search: "Buscar",
+  status: "Estado",
+  active: "Activos",
+  archived: "Dados de baja",
+  all: "Todos",
+  category: "Categoría",
+  allCategories: "Todas",
+  moreCategories: "Cargar más categorías",
+  categoriesFailed: "No pudimos traer las categorías.",
+  emptyFiltered: "No hay artículos con estos filtros.",
+};

@@ -8,12 +8,14 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { ReadOnlyNotice } from "@/features/session";
 import { ROUTES } from "@/lib/routes";
 
+import { itemsHref } from "../api/filters";
 import { itemsOfPages } from "../api/pages";
 import { useItemAccess } from "../hooks/use-item-access";
 import { useItems } from "../hooks/use-items";
 import type { ItemFilters } from "../types";
+import { ItemFilterBar } from "./item-filters";
 import { ItemRow } from "./item-row";
-import { ITEMS_TEXTS } from "./texts";
+import { FILTER_TEXTS, ITEMS_TEXTS } from "./texts";
 
 /**
  * The rows come in the order of the API and the buttons that write only show to who can manage (INV-FE-01).
@@ -41,6 +43,7 @@ export function ItemsScreen({ filters }: { filters: ItemFilters }) {
           {ITEMS_TEXTS.account}
         </Link>
       </div>
+      <ItemFilterBar filters={filters} />
       {rows.length > 0 && (
         <ul className="flex flex-col gap-2">
           {rows.map((item) => (
@@ -50,7 +53,11 @@ export function ItemsScreen({ filters }: { filters: ItemFilters }) {
       )}
       {items.isPending && <p role="status">{ITEMS_TEXTS.loading}</p>}
       {items.data && rows.length === 0 && !items.hasNextPage && (
-        <p>{ITEMS_TEXTS.empty}</p>
+        <p>
+          {itemsHref(filters) === ROUTES.items
+            ? ITEMS_TEXTS.empty
+            : FILTER_TEXTS.emptyFiltered}
+        </p>
       )}
       {items.isError && !leaving && (
         <div className="flex flex-col gap-2">

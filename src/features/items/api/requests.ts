@@ -23,3 +23,14 @@ export function getItem(id: string) {
 export function createItem(body: CreateItemBody) {
   return unwrap(browserApi.POST("/items", { body }));
 }
+
+/** The most the API gives in one page, so the select of categories rarely needs a second one. */
+export function listItemCategories(cursor: string | null) {
+  return unwrap(
+    browserApi.GET("/item-categories", {
+      params: {
+        query: cursor === null ? { limit: 100 } : { limit: 100, cursor },
+      },
+    }),
+  );
+}
