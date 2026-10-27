@@ -50,6 +50,7 @@ test("Marta, who is manager, sees the prices and Nuevo artículo", async ({
   await signInThroughProxy(page, USERS.marta.email, USERS.marta.password);
   await openItemsScreen(page, "/articulos");
   await expect(page.getByRole("listitem").first()).toContainText("$ 1.500");
+  await expect(page.getByRole("link", { name: "Cargar lista" })).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Nuevo artículo" }),
   ).toBeVisible();
@@ -162,4 +163,30 @@ test("Olga, whose business is read only, is sent from an edit page to /articulos
   await page.goto(`/articulos/${ITEM_IDS.sillaNegra}/editar`);
   await page.waitForURL(/\/articulos$/);
   await expect(page.getByText("Tu negocio está en solo lectura")).toBeVisible();
+});
+
+/** AC-6, AC-37 */
+test("Beto, who opens /articulos/cargar-lista by URL, ends on /articulos and nothing is sent", async ({
+  page,
+  request,
+}) => {
+  await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
+  await page.goto("/articulos/cargar-lista");
+  await page.waitForURL(/\/articulos$/);
+  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  const writes = (await apiRequests(request)).filter(
+    (call) => call.path.startsWith("/items") && call.method === "POST",
+  );
+  expect(writes).toEqual([]);
+});
+
+/** AC-37 */
+test("Olga, whose business is read only, is sent from /articulos/cargar-lista to /articulos", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.olga.email, USERS.olga.password);
+  await page.goto("/articulos/cargar-lista");
+  await page.waitForURL(/\/articulos$/);
+  await expect(page.getByText("Tu negocio está en solo lectura")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Cargar lista" })).toHaveCount(0);
 });

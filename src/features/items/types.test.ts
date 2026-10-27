@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { editFormSchemaOf, itemFormSchema, type ItemFormValues } from "./types";
+import {
+  editFormSchemaOf,
+  importFormSchema,
+  itemFormSchema,
+  type ItemFormValues,
+} from "./types";
 
 const VALID: ItemFormValues = {
   name: "Mesa redonda",
@@ -126,5 +131,13 @@ describe("editFormSchemaOf", () => {
   it("keeps checking every other field", () => {
     const result = editFormSchemaOf(OPENED).safeParse({ ...OPENED, name: "" });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("importFormSchema", () => {
+  it("asks only for a list that is not empty, and does not touch it", () => {
+    expect(importFormSchema.safeParse({ text: " \n " }).success).toBe(false);
+    const text = "Mesa;1,5;abc\n\n";
+    expect(importFormSchema.parse({ text }).text).toBe(text);
   });
 });

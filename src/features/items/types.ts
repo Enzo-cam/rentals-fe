@@ -101,3 +101,12 @@ export const EMPTY_ITEM_FORM: ItemFormValues = {
   code: "",
   description: "",
 };
+
+/** The pasted list: only that there is something, since reading it is the API's (INV-FE-01). It goes as typed. */
+export const importFormSchema = z.object({
+  text: z
+    .string()
+    .refine((text) => text.trim() !== "", "Pegá la lista de artículos."),
+});
+
+export type ImportFormValues = z.infer<typeof importFormSchema>;

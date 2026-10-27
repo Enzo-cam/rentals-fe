@@ -1,4 +1,5 @@
 import { ApiError, failureOf } from "@/api/api-failure";
+import type { components } from "@/api/schema";
 
 /**
  * The item is not there for this business: a 404 `item_not_found`, or a 400 `invalid_request` when the id in the URL
@@ -58,4 +59,29 @@ export function isOutOfServiceExceeded(error: unknown): boolean {
     failure.status === 400 &&
     failure.code === "out_of_service_exceeds_stock"
   );
+}
+
+/**
+ * A 422 `import_rejected` carries the preview again with the rows that failed marked: that is what the screen shows
+ * instead of its own preview. `null` for any other failure.
+ */
+export function rejectedPreviewOf(
+  error: unknown,
+): components["schemas"]["ItemImportPreview"] | null {
+  const failure = failureOf(error);
+  if (failure?.kind !== "rejected" || failure.status !== 422) return null;
+  const body = error instanceof ApiError ? error.body : undefined;
+  if (typeof body !== "object" || body === null || !("preview" in body)) {
+    return null;
+  }
+  const { preview } = body;
+  if (
+    typeof preview !== "object" ||
+    preview === null ||
+    !("rows" in preview) ||
+    !Array.isArray(preview.rows)
+  ) {
+    return null;
+  }
+  return preview as components["schemas"]["ItemImportPreview"];
 }

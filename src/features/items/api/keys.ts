@@ -10,4 +10,6 @@ export const itemKeys = {
   create: () => [...itemKeys.all, "create"] as const,
   update: (id: string) => [...itemKeys.all, "update", id] as const,
   archive: (id: string) => [...itemKeys.all, "archive", id] as const,
+  importPreview: () => [...itemKeys.all, "import-preview"] as const,
+  importConfirm: () => [...itemKeys.all, "import"] as const,
 };

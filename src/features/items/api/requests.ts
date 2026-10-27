@@ -53,3 +53,12 @@ export function setItemArchived(id: string, archived: boolean) {
       : browserApi.POST("/items/{id}/reactivate", options),
   );
 }
+
+/** The text goes exactly as it was pasted: reading the list is the API's (INV-FE-01). */
+export function previewItemImport(text: string) {
+  return unwrap(browserApi.POST("/items/import/preview", { body: { text } }));
+}
+
+export function confirmItemImport(text: string) {
+  return unwrap(browserApi.POST("/items/import", { body: { text } }));
+}

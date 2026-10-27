@@ -118,3 +118,81 @@ export function meOf(
     business: { id: business.id, name: business.name, readOnly },
   };
 }
+
+type ItemImportPreview = components["schemas"]["ItemImportPreview"];
+type ItemImportRejected = components["schemas"]["ItemImportRejected"];
+
+/** A pasted list with a header, a blank line and a price with a comma: the front sends it as it is. */
+export const IMPORT_TEXT =
+  "Nombre;Cantidad;Precio\nSilla Tiffany blanca;10;1500\nCopa de agua;200;1,50\nCopa de agua;50;300\n\nMantel cuadrado;20;$ 2.800";
+
+function row(
+  line: number,
+  name: string,
+  totalStock: number,
+  priceCents: number | null,
+  errors: ItemImportPreview["rows"][number]["errors"] = [],
+): ItemImportPreview["rows"][number] {
+  return {
+    line,
+    name,
+    totalStock,
+    priceCents,
+    category: null,
+    code: null,
+    description: null,
+    errors,
+  };
+}
+
+/** What the API makes of `IMPORT_TEXT`: three rows with errors and one without. */
+export const markedPreview = {
+  header: { line: 1, cells: ["Nombre", "Cantidad", "Precio"] },
+  rows: [
+    row(2, SILLA, 10, 150000, [
+      {
+        code: "name_taken",
+        item: { id: ITEM_IDS.silla, name: SILLA, archived: false },
+      },
+    ]),
+    row(3, "Copa de agua", 200, null, [{ code: "price_invalid" }]),
+    row(4, "Copa de agua", 50, 30000, [
+      { code: "name_repeated", otherLine: 3 },
+    ]),
+    row(6, "Mantel cuadrado", 20, 280000),
+  ],
+  valid: false,
+} satisfies ItemImportPreview;
+
+/** The list of a preview with no errors: three rows. */
+export const VALID_IMPORT_TEXT =
+  "Mesa;30;12.000\nSilla;100;1.500\nManto;50;800";
+
+export const validPreview = {
+  header: null,
+  rows: [
+    row(1, "Mesa", 30, 1200000),
+    row(2, "Silla", 100, 150000),
+    row(3, "Manto", 50, 80000),
+  ],
+  valid: true,
+} satisfies ItemImportPreview;
+
+/** The 422 of a confirmation: the same list, with the second row marked as taken by Copa de vino. */
+export const rejectedImport = {
+  error: "import_rejected",
+  preview: {
+    header: null,
+    rows: [
+      row(1, "Mesa", 30, 1200000),
+      row(2, "Silla", 100, 150000, [
+        {
+          code: "name_taken",
+          item: { id: ITEM_IDS.copa, name: COPA, archived: false },
+        },
+      ]),
+      row(3, "Manto", 50, 80000),
+    ],
+    valid: false,
+  },
+} satisfies ItemImportRejected;

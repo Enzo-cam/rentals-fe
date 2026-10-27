@@ -36,6 +36,14 @@ export function ItemsScreen({ filters }: { filters: ItemFilters }) {
             {ITEMS_TEXTS.newItem}
           </Link>
         )}
+        {access.canManage && (
+          <Link
+            href={ROUTES.importItems}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            {ITEMS_TEXTS.importList}
+          </Link>
+        )}
         <Link
           href={ROUTES.account}
           className={buttonVariants({ variant: "outline" })}

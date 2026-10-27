@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { ApiError, type ApiFailure } from "@/api/api-failure";
 
-import { isItemMissing, isOutOfServiceExceeded, takenItemOf } from "./failures";
+import {
+  isItemMissing,
+  isOutOfServiceExceeded,
+  rejectedPreviewOf,
+  takenItemOf,
+} from "./failures";
 
 function rejected(status: number, code: string | null): ApiError {
   const failure: ApiFailure = { kind: "rejected", status, code };
@@ -71,5 +76,28 @@ describe("isOutOfServiceExceeded", () => {
       false,
     );
     expect(isOutOfServiceExceeded(new Error("boom"))).toBe(false);
+  });
+});
+
+describe("rejectedPreviewOf", () => {
+  const preview = { header: null, rows: [], valid: false };
+  const rejection = (body: unknown, status = 422) =>
+    new ApiError({ kind: "rejected", status, code: "import_rejected" }, body);
+
+  it("gives the marked preview that a 422 import_rejected carries", () => {
+    expect(
+      rejectedPreviewOf(rejection({ error: "import_rejected", preview })),
+    ).toEqual(preview);
+  });
+
+  it("is null for any other failure, or a 422 whose body has no preview", () => {
+    expect(rejectedPreviewOf(rejection({ error: "import_rejected" }))).toBe(
+      null,
+    );
+    expect(rejectedPreviewOf(rejection({ preview: 3 }))).toBe(null);
+    expect(rejectedPreviewOf(rejection({ preview }, 400))).toBe(null);
+    expect(rejectedPreviewOf(rejected(500, null))).toBe(null);
+    expect(rejectedPreviewOf(new Error("boom"))).toBe(null);
+    expect(rejectedPreviewOf(null)).toBe(null);
   });
 });
