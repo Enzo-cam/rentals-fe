@@ -1,6 +1,10 @@
 import { expect, test } from "@playwright/test";
 
-import { overrideNext, resetFakeApi } from "../support/fake-api-control";
+import {
+  apiRequests,
+  overrideNext,
+  resetFakeApi,
+} from "../support/fake-api-control";
 import {
   copa,
   ITEM_IDS,
@@ -104,4 +108,31 @@ test("Olga sees the notice and the detail of her item, with no buttons that writ
   await expect(page.getByRole("button", { name: "Dar de baja" })).toHaveCount(
     0,
   );
+});
+
+/** AC-6 */
+test("Beto, who opens /articulos/nuevo by URL, ends on /articulos and nothing is sent", async ({
+  page,
+  request,
+}) => {
+  await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
+  await page.goto("/articulos/nuevo");
+  await page.waitForURL(/\/articulos$/);
+  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  const writes = (await apiRequests(request)).filter(
+    (call) =>
+      call.path.startsWith("/items") &&
+      (call.method === "POST" || call.method === "PATCH"),
+  );
+  expect(writes).toEqual([]);
+});
+
+/** AC-8 */
+test("Olga, who opens /articulos/nuevo by URL, ends on /articulos with the notice", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.olga.email, USERS.olga.password);
+  await page.goto("/articulos/nuevo");
+  await page.waitForURL(/\/articulos$/);
+  await expect(page.getByText("Tu negocio está en solo lectura")).toBeVisible();
 });

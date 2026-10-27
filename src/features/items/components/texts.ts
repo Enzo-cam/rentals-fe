@@ -22,3 +22,24 @@ export const DETAIL_TEXTS = {
   noCode: "Sin código",
   noDescription: "Sin descripción",
 };
+
+export const FORM_TEXTS = {
+  name: "Nombre",
+  totalStock: "Stock total",
+  outOfService: "Fuera de servicio",
+  price: "Precio de lista",
+  category: "Categoría",
+  code: "Código",
+  description: "Descripción",
+  save: "Guardar",
+  saving: "Guardando…",
+  loading: "Cargando…",
+};
+
+/** Screen texts of the API codes for the item form. */
+export const FORM_ERRORS = {
+  invalid_request: "Revisá los datos e intentá de nuevo.",
+};
+
+export const OUT_OF_SERVICE_EXCEEDED =
+  "No puede haber más unidades fuera de servicio que el stock total.";

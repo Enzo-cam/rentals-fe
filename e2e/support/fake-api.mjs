@@ -11,7 +11,10 @@ const HANG_MS = 15_000;
 const sessionApi = createSessionApi({
   frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
 });
-const itemsApi = createItemsApi({ accessOf: sessionApi.accessOf });
+const itemsApi = createItemsApi({
+  accessOf: sessionApi.accessOf,
+  frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
+});
 
 let healthMode = "ok";
 let lastRequest = null;

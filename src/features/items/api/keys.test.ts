@@ -29,6 +29,7 @@ describe("itemKeys", () => {
       itemKeys.details(),
       itemKeys.detail("abc"),
       itemKeys.categories(),
+      itemKeys.create(),
     ];
     for (const key of keys) {
       expect(key.slice(0, itemKeys.all.length)).toEqual([...itemKeys.all]);

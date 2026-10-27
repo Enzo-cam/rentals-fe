@@ -102,3 +102,19 @@ export async function openItemsScreen(page: Page, path: string) {
       ),
   );
 }
+
+type Me = components["schemas"]["Me"];
+
+/** The `GET /me` that a test forces to change who the user is after the page loaded. */
+export function meOf(
+  user: { id: string; name: string; email: string },
+  business: { id: string; name: string },
+  role: Me["role"],
+  readOnly: boolean,
+): Me {
+  return {
+    user,
+    role,
+    business: { id: business.id, name: business.name, readOnly },
+  };
+}

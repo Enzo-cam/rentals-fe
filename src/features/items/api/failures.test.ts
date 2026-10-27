@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ApiError, type ApiFailure } from "../../../api/api-failure";
 
-import { isItemMissing } from "./failures";
+import { isItemMissing, isOutOfServiceExceeded, takenItemOf } from "./failures";
 
 function rejected(status: number, code: string | null): ApiError {
   const failure: ApiFailure = { kind: "rejected", status, code };
@@ -24,5 +24,52 @@ describe("isItemMissing", () => {
     ).toBe(false);
     expect(isItemMissing(new Error("boom"))).toBe(false);
     expect(isItemMissing(null)).toBe(false);
+  });
+});
+
+function conflict(error: string, archived = false): ApiError {
+  const item = { id: "i-1", name: "Silla Tiffany blanca", archived };
+  return new ApiError(
+    { kind: "rejected", status: 409, code: error },
+    { error, item },
+  );
+}
+
+describe("takenItemOf", () => {
+  it("says which field is taken and by which item", () => {
+    expect(takenItemOf(conflict("item_name_taken"))).toEqual({
+      field: "name",
+      item: { id: "i-1", name: "Silla Tiffany blanca", archived: false },
+    });
+    expect(takenItemOf(conflict("item_code_taken", true))).toEqual({
+      field: "code",
+      item: { id: "i-1", name: "Silla Tiffany blanca", archived: true },
+    });
+  });
+
+  it("is null for other failures and for a 409 whose body does not name an item", () => {
+    expect(takenItemOf(rejected(409, "item_name_taken"))).toBeNull();
+    expect(takenItemOf(rejected(400, "invalid_request"))).toBeNull();
+    expect(
+      takenItemOf(
+        new ApiError(
+          { kind: "rejected", status: 409, code: "item_name_taken" },
+          { error: "item_name_taken", item: { id: 1 } },
+        ),
+      ),
+    ).toBeNull();
+    expect(takenItemOf(new Error("boom"))).toBeNull();
+  });
+});
+
+describe("isOutOfServiceExceeded", () => {
+  it("is true only for a 400 out_of_service_exceeds_stock", () => {
+    expect(
+      isOutOfServiceExceeded(rejected(400, "out_of_service_exceeds_stock")),
+    ).toBe(true);
+    expect(isOutOfServiceExceeded(rejected(400, "invalid_request"))).toBe(
+      false,
+    );
+    expect(isOutOfServiceExceeded(new Error("boom"))).toBe(false);
   });
 });

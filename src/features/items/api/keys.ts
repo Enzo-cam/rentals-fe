@@ -7,4 +7,5 @@ export const itemKeys = {
   details: () => [...itemKeys.all, "detail"] as const,
   detail: (id: string) => [...itemKeys.details(), id] as const,
   categories: () => [...itemKeys.all, "categories"] as const,
+  create: () => [...itemKeys.all, "create"] as const,
 };

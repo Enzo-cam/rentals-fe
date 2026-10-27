@@ -28,3 +28,13 @@ test("the detail of the longest item name is Spanish, not indexable and fits in 
   await expect(page.getByRole("heading", { name: TABLON })).toBeVisible();
   await expectPrivatePage(page);
 });
+
+/** AC-22 */
+test("/articulos/nuevo is Spanish, not indexable and fits in 360 px", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.ana.email, USERS.ana.password);
+  await openItemsScreen(page, "/articulos/nuevo");
+  await expect(page.getByLabel("Nombre", { exact: true })).toBeVisible();
+  await expectPrivatePage(page);
+});

@@ -3,6 +3,7 @@ import { browserApi } from "@/api/browser-client";
 import type { paths } from "@/api/schema";
 
 import type { ItemFilters } from "../types";
+import type { CreateItemBody } from "./item-body";
 
 /** The cursor belongs to the filters it came with; `limit` is never sent, so the API picks the page size. */
 export function listItems(filters: ItemFilters, cursor: string | null) {
@@ -17,4 +18,8 @@ export function listItems(filters: ItemFilters, cursor: string | null) {
 
 export function getItem(id: string) {
   return unwrap(browserApi.GET("/items/{id}", { params: { path: { id } } }));
+}
+
+export function createItem(body: CreateItemBody) {
+  return unwrap(browserApi.POST("/items", { body }));
 }

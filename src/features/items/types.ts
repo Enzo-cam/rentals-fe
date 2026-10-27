@@ -1,3 +1,7 @@
+import { z } from "zod";
+
+import { parsePesos } from "../../lib/format/money";
+import { parseWholeNumber } from "../../lib/format/whole-number";
 import type { components, paths } from "@/api/schema";
 
 type ItemsQuery = NonNullable<paths["/items"]["get"]["parameters"]["query"]>;
@@ -24,3 +28,62 @@ export type ItemPage =
 
 export type ListedItem =
   components["schemas"]["ItemWithPrice"] | components["schemas"]["Item"];
+
+export const MAX_STOCK = 100_000;
+const STOCK_MESSAGE = "Escribí un número entero de 0 a 100.000.";
+
+function fitsIn(max: number) {
+  return (text: string) => Array.from(text.trim()).length <= max;
+}
+
+/**
+ * Only the shape, with every field as the text the person typed: the limits are the ones of the contract, and
+ * whether the out of service units fit in the stock is the API's to decide (INV-FE-01). Lengths are in code points,
+ * as the API counts them, over the trimmed text. An empty out of service means 0.
+ */
+export const itemFormSchema = z.object({
+  name: z
+    .string()
+    .refine((text) => text.trim() !== "", "Escribí el nombre.")
+    .refine(fitsIn(120), "El nombre puede tener hasta 120 caracteres."),
+  totalStock: z
+    .string()
+    .refine(
+      (text) => parseWholeNumber(text, MAX_STOCK) !== null,
+      STOCK_MESSAGE,
+    ),
+  outOfService: z
+    .string()
+    .refine(
+      (text) =>
+        text.trim() === "" || parseWholeNumber(text, MAX_STOCK) !== null,
+      STOCK_MESSAGE,
+    ),
+  price: z
+    .string()
+    .refine(
+      (text) => parsePesos(text) !== null,
+      "Escribí el precio en pesos, sin centavos: 1500, 1.500 o $ 1.500.",
+    ),
+  category: z
+    .string()
+    .refine(fitsIn(60), "La categoría puede tener hasta 60 caracteres."),
+  code: z
+    .string()
+    .refine(fitsIn(40), "El código puede tener hasta 40 caracteres."),
+  description: z
+    .string()
+    .refine(fitsIn(500), "La descripción puede tener hasta 500 caracteres."),
+});
+
+export type ItemFormValues = z.infer<typeof itemFormSchema>;
+
+export const EMPTY_ITEM_FORM: ItemFormValues = {
+  name: "",
+  totalStock: "",
+  outOfService: "",
+  price: "",
+  category: "",
+  code: "",
+  description: "",
+};

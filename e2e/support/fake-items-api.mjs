@@ -1,8 +1,10 @@
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 const FIXTURES = JSON.parse(
   readFileSync(new URL("./items-fixtures.json", import.meta.url), "utf8"),
 );
+const JSON_MEDIA_TYPE = /^application\/json\s*(?:;|$)/i;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** `true` for `/items`, `/items/...` and `/item-categories`, the paths this fake answers. */
@@ -34,14 +36,15 @@ function withoutBusiness(item) {
  * what a test needs from the API beyond the fixed pages (the crew's shape, a 409, a preview) comes from an override.
  * `accessOf(req)` is the one of the session fake: the same 401, 403 and 404 guards.
  */
-export function createItemsApi({ accessOf }) {
+export function createItemsApi({ accessOf, frontOrigin }) {
   let store;
   function reset() {
     store = structuredClone(FIXTURES.items);
   }
   reset();
 
-  function handle(req, res, path) {
+  /** `rawBody` is the request body, already read by the caller. */
+  function handle(req, res, path, rawBody) {
     const access = accessOf(req);
     if (access.failure)
       return fail(res, access.failure.status, access.failure.error);
@@ -59,6 +62,24 @@ export function createItemsApi({ accessOf }) {
         items: names.map((name) => ({ name })),
         nextCursor: null,
       });
+    }
+    if (req.method === "POST") {
+      if (!JSON_MEDIA_TYPE.test(req.headers["content-type"] ?? "")) {
+        return fail(res, 415, "unsupported_media_type");
+      }
+      if (req.headers.origin !== frontOrigin) {
+        return fail(res, 403, "origin_not_allowed");
+      }
+      if (path === "/items") {
+        const created = {
+          ...JSON.parse(rawBody),
+          id: randomUUID(),
+          businessId: access.businessId,
+          archived: false,
+        };
+        store.push(created);
+        return json(res, 201, withoutBusiness(created));
+      }
     }
     const id = path.match(/^\/items\/([^/]+)$/)?.[1];
     if (req.method === "GET" && id !== undefined) {
