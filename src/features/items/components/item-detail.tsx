@@ -12,6 +12,7 @@ import { ROUTES } from "@/lib/routes";
 import { isItemMissing } from "../api/failures";
 import { useItem } from "../hooks/use-item";
 import { useItemAccess } from "../hooks/use-item-access";
+import { ArchiveActions } from "./archive-actions";
 import { DETAIL_TEXTS, ITEMS_TEXTS } from "./texts";
 
 function Field({ label, value }: { label: string; value: string }) {
@@ -93,6 +94,13 @@ export function ItemDetail({ id }: { id: string }) {
         <Link href={ROUTES.editItem(item.data.id)} className={buttonVariants()}>
           {DETAIL_TEXTS.edit}
         </Link>
+      )}
+      {item.data && access.canManage && (
+        <ArchiveActions
+          id={item.data.id}
+          name={item.data.name}
+          archived={item.data.archived}
+        />
       )}
       {back}
     </div>

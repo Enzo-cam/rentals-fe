@@ -40,3 +40,16 @@ export function updateItem(id: string, body: UpdateItemBody) {
     browserApi.PATCH("/items/{id}", { params: { path: { id } }, body }),
   );
 }
+
+/** openapi-fetch sends no `Content-Type` without a body, and the API answers 415 to a mutation without JSON. */
+export function setItemArchived(id: string, archived: boolean) {
+  const options = {
+    params: { path: { id } },
+    headers: { "content-type": "application/json" },
+  };
+  return unwrap(
+    archived
+      ? browserApi.POST("/items/{id}/archive", options)
+      : browserApi.POST("/items/{id}/reactivate", options),
+  );
+}

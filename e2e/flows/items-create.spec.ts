@@ -88,7 +88,9 @@ test("Ana creates an item: exact body, JSON, lands on the detail and the list is
   await page.getByRole("link", { name: "Volver a los artículos" }).click();
   await page.waitForURL("**/articulos");
   await expect(page.getByRole("listitem").first()).toBeVisible();
-  expect((await calls(request, "GET", "/items")).length).toBe(before + 1);
+  await expect
+    .poll(async () => (await calls(request, "GET", "/items")).length)
+    .toBe(before + 1);
 });
 
 test("Ana, who opens /articulos/nuevo by URL, sees the form and stays", async ({

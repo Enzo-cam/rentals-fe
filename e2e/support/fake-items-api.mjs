@@ -91,6 +91,16 @@ export function createItemsApi({ accessOf, frontOrigin }) {
       if (req.method === "PATCH") Object.assign(found, JSON.parse(rawBody));
       return json(res, 200, withoutBusiness(found));
     }
+    const action = path.match(/^\/items\/([^/]+)\/(archive|reactivate)$/);
+    if (req.method === "POST" && action) {
+      const found = store.find(
+        (item) =>
+          item.id === action[1] && item.businessId === access.businessId,
+      );
+      if (!found) return fail(res, 404, "item_not_found");
+      found.archived = action[2] === "archive";
+      return json(res, 200, withoutBusiness(found));
+    }
     return fail(res, 404, "not_found");
   }
 

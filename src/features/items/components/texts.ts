@@ -58,3 +58,11 @@ export const FILTER_TEXTS = {
   categoriesFailed: "No pudimos traer las categorías.",
   emptyFiltered: "No hay artículos con estos filtros.",
 };
+
+export const ARCHIVE_TEXTS = {
+  archive: "Dar de baja",
+  reactivate: "Reactivar",
+  cancel: "Cancelar",
+  title: (name: string) => `¿Dar de baja «${name}»?`,
+  description: "No se borra: lo podés reactivar cuando quieras.",
+};
