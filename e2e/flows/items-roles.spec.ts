@@ -3,6 +3,8 @@ import { expect, test } from "@playwright/test";
 import { overrideNext, resetFakeApi } from "../support/fake-api-control";
 import {
   copa,
+  ITEM_IDS,
+  withoutPrice,
   pageWithoutPrices,
   silla,
   SILLA,
@@ -66,4 +68,40 @@ test("Olga, whose business is read only, sees the notice, the items and no butto
     0,
   );
   await expect(page.getByRole("link", { name: "Cargar lista" })).toHaveCount(0);
+});
+
+/** AC-5 */
+test("Beto sees the detail of an item without price and without buttons that write", async ({
+  page,
+  request,
+}) => {
+  await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
+  await overrideNext(request, {
+    method: "GET",
+    path: `/items/${ITEM_IDS.silla}`,
+    status: 200,
+    body: withoutPrice(silla),
+  });
+  await openItemsScreen(page, `/articulos/${ITEM_IDS.silla}`);
+  await expect(page.getByRole("heading", { name: SILLA })).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("$");
+  await expect(page.getByText("Precio de lista")).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Editar" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Dar de baja" })).toHaveCount(
+    0,
+  );
+});
+
+/** AC-8 */
+test("Olga sees the notice and the detail of her item, with no buttons that write", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.olga.email, USERS.olga.password);
+  await openItemsScreen(page, `/articulos/${ITEM_IDS.sillaNegra}`);
+  await expect(page.getByText("Tu negocio está en solo lectura")).toBeVisible();
+  await expect(page.getByText("$ 900")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Editar" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Dar de baja" })).toHaveCount(
+    0,
+  );
 });

@@ -93,6 +93,7 @@ function control(req, res, path) {
     requests = [];
     overrides = [];
     sessionApi.reset();
+    itemsApi.reset();
     return json(res, 200, { ok: true });
   }
   if (req.method === "POST" && path === "/__control/override") {

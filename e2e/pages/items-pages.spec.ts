@@ -1,8 +1,8 @@
-import { test } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { resetFakeApi } from "../support/fake-api-control";
 import { expectPrivatePage } from "../support/private-page";
-import { openItemsScreen } from "../support/items";
+import { ITEM_IDS, openItemsScreen, TABLON } from "../support/items";
 import { signInThroughProxy, USERS } from "../support/session";
 
 test.beforeEach(async ({ request }) => {
@@ -16,5 +16,15 @@ test("/articulos is Spanish, not indexable and fits in 360 px", async ({
   await signInThroughProxy(page, USERS.ana.email, USERS.ana.password);
   await openItemsScreen(page, "/articulos");
   await page.getByRole("listitem").nth(2).waitFor();
+  await expectPrivatePage(page);
+});
+
+/** AC-22 */
+test("the detail of the longest item name is Spanish, not indexable and fits in 360 px", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.ana.email, USERS.ana.password);
+  await openItemsScreen(page, `/articulos/${ITEM_IDS.tablon}`);
+  await expect(page.getByRole("heading", { name: TABLON })).toBeVisible();
   await expectPrivatePage(page);
 });

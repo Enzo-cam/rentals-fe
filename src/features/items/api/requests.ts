@@ -14,3 +14,7 @@ export function listItems(filters: ItemFilters, cursor: string | null) {
   if (cursor !== null) query.cursor = cursor;
   return unwrap(browserApi.GET("/items", { params: { query } }));
 }
+
+export function getItem(id: string) {
+  return unwrap(browserApi.GET("/items/{id}", { params: { path: { id } } }));
+}

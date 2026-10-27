@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const FIXTURES = JSON.parse(
   readFileSync(new URL("./items-fixtures.json", import.meta.url), "utf8"),
 );
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** `true` for `/items`, `/items/...` and `/item-categories`, the paths this fake answers. */
 export function isItemsPath(path) {
@@ -34,6 +35,12 @@ function withoutBusiness(item) {
  * `accessOf(req)` is the one of the session fake: the same 401, 403 and 404 guards.
  */
 export function createItemsApi({ accessOf }) {
+  let store;
+  function reset() {
+    store = structuredClone(FIXTURES.items);
+  }
+  reset();
+
   function handle(req, res, path) {
     const access = accessOf(req);
     if (access.failure)
@@ -53,8 +60,17 @@ export function createItemsApi({ accessOf }) {
         nextCursor: null,
       });
     }
+    const id = path.match(/^\/items\/([^/]+)$/)?.[1];
+    if (req.method === "GET" && id !== undefined) {
+      if (!UUID.test(id)) return fail(res, 400, "invalid_request");
+      const found = store.find(
+        (item) => item.id === id && item.businessId === access.businessId,
+      );
+      if (!found) return fail(res, 404, "item_not_found");
+      return json(res, 200, withoutBusiness(found));
+    }
     return fail(res, 404, "not_found");
   }
 
-  return { handle };
+  return { handle, reset };
 }
