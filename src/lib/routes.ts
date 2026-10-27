@@ -11,4 +11,4 @@ export const ROUTES = {
 } as const;
 
 /** The screen a user lands on after signing in with a business selected. */
-export const AFTER_SIGN_IN_PATH = ROUTES.account;
+export const AFTER_SIGN_IN_PATH = ROUTES.items;
