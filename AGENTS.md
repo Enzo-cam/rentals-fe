@@ -68,7 +68,8 @@ src/
 │   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
 │   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
 │   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
-├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog)
+├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog) con la forma de la marca, y BrandMark
+                                (la marca como SVG, docs/brand.md)
 └── lib/                        routes.ts (rutas y destino al entrar); format/ (money y whole-number: único lugar
                                 que da formato y lee plata y enteros); effects/ llega con su primer uso
 e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local: fake-session-api y
@@ -86,6 +87,9 @@ scripts/                        api-sync, api-check, check-client-env
 4. **SEO técnico** (skill `seo-tecnico`): lo público, renderizado en el servidor; lo privado y los links de
    presupuesto, con `noindex` y fuera del sitemap.
 5. **WhatsApp por links `wa.me`**, sin API.
+6. **Marca.** [`docs/brand.md`](docs/brand.md) manda sobre colores, tipografía, íconos, forma de los componentes y tono
+   de los textos (voseo). Se usan los tokens semánticos de `src/app/globals.css`: nunca un color suelto. Una acción
+   principal por pantalla, en píldora.
 
 ## Módulos de referencia
 
@@ -103,7 +107,7 @@ Se completan con cada pantalla que pase `/review-pr`. Las filas con `—` todav�
 - **Plan de trabajo actual:** `../rentals-be/docs/plan-boceto.md` (los pasos `1b` y los de pantallas son de este repo)
 - Comandos: [`docs/agents/commands.md`](docs/agents/commands.md)
 - Invariantes: [`docs/agents/invariants.md`](docs/agents/invariants.md)
-- **Arquitectura:** [`docs/architecture.md`](docs/architecture.md)
+- **Arquitectura:** [`docs/architecture.md`](docs/architecture.md) · **Marca:** [`docs/brand.md`](docs/brand.md)
 - Glosario: `../rentals-be/GLOSSARY.md` · Decisiones: [`docs/adr/`](docs/adr/) (sesión y proxy:
   [0001](docs/adr/0001-sesion-y-proxy-bff.md); features, estado y tests:
   [0002](docs/adr/0002-arquitectura-por-features.md)) y las de `../rentals-be/docs/adr/`

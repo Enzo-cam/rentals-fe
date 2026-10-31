@@ -188,4 +188,5 @@ Detalle en la skill `seo-tecnico`. Mínimo obligatorio:
 - [ ] ¿Las mutaciones con efecto usan `useIdempotentMutation` y declaran sus invalidaciones?
 - [ ] ¿Alguna actualización optimista de disponibilidad o de estado de reserva?
 - [ ] ¿La página pública tiene metadata completa y la privada `noindex`?
+- [ ] ¿Algún color suelto (hex, `bg-green-…`) en vez de un token, o un texto que no respeta `docs/brand.md`?
 - [ ] ¿Cada estado del componente tiene su story y su test de Playwright?
