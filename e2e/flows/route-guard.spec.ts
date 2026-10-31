@@ -14,6 +14,7 @@ const GUARDED = [
   "/articulos/cargar-lista",
   "/clientes",
   "/clientes/nuevo",
+  "/disponibilidad",
 ];
 const UNGUARDED = ["/", "/ingresar", "/definir-contrasena"];
 

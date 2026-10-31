@@ -1,0 +1,59 @@
+{
+  "pageSize": 3,
+  "items": [
+    {
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "itemId": "bbbbbbbb-0000-4000-8000-000000000002",
+      "name": "Copa de vino",
+      "totalStock": 1200,
+      "outOfService": 0,
+      "reserved": 120,
+      "available": 1080
+    },
+    {
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "itemId": "bbbbbbbb-0000-4000-8000-000000000004",
+      "name": "Living blanco",
+      "totalStock": 6,
+      "outOfService": 1,
+      "reserved": 7,
+      "available": -2
+    },
+    {
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "itemId": "bbbbbbbb-0000-4000-8000-000000000001",
+      "name": "Silla Tiffany blanca",
+      "totalStock": 120,
+      "outOfService": 4,
+      "reserved": 30,
+      "available": 86
+    },
+    {
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "itemId": "bbbbbbbb-0000-4000-8000-000000000006",
+      "name": "Tablón rectangular de 2,40 m con caballetes plegables para eventos al aire libre en Corrientes y Resistencia",
+      "totalStock": 25,
+      "outOfService": 0,
+      "reserved": 0,
+      "available": 25
+    },
+    {
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "itemId": "bbbbbbbb-0000-4000-8000-000000000007",
+      "name": "Zócalo de madera",
+      "totalStock": 10,
+      "outOfService": 2,
+      "reserved": 3,
+      "available": 5
+    },
+    {
+      "businessId": "33333333-3333-4333-8333-333333333333",
+      "itemId": "bbbbbbbb-0000-4000-8000-000000000005",
+      "name": "Silla plegable negra",
+      "totalStock": 50,
+      "outOfService": 0,
+      "reserved": 10,
+      "available": 40
+    }
+  ]
+}
