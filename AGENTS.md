@@ -119,6 +119,31 @@ Se completan con cada pantalla que pase `/review-pr`. Las filas con `—` todav�
 - Un solo foco por PR.
 - Toda PR enlaza su ticket como `Enzo-cam/rentals-be#N`.
 
+## Modo MVP
+
+Vigente desde 2026-10-31, hasta que el flujo de punta a punta esté probado a mano (objetivo: 2026-11-07). Pedido del
+fundador: avanzar, testear, probar, cerrar la tarea y seguir. Aplica `contrato-repo` (sección "Modo MVP") y **manda
+sobre "Presupuesto de PR" y "Tests"** en lo que se contradiga.
+
+- **Alcance del MVP:** los pasos 0 a 7 de `../rentals-be/docs/plan-boceto.md` y las pantallas de cada uno. El paso 8
+  (eventos de uso) y el 9 (backoffice) quedan fuera hasta probar el flujo.
+- **Amenazas:** lo que un usuario de un negocio puede hacer desde la aplicación, y que un negocio no vea lo de otro (ya
+  construido: no se vuelve a revisar salvo que el cambio toque esas tablas o rutas). **Nadie más que el fundador tiene
+  acceso a la base ni al servidor:** no se diseña ni se revisa contra eso.
+- **Bordes:** los de la operatoria de un negocio de alquiler para eventos: reservar de más, fechas y horarios,
+  cliente repetido, entrega, devolución, cancelar, vencer un bloqueo. Sin casos rebuscados.
+- **Preguntas:** no se pregunta por un borde. Se elige la regla más simple que sirva a la operatoria y se anota en la
+  PR. Se pregunta solo si cambia lo que el dueño del negocio ve o hace (precios, estados, quién ve qué).
+- **PR:** hasta **1200 líneas** de lógica de producción sin ceremonia de aviso, y cuerpo corto (`pr-con-foco`, "PR
+  corta"). Un solo foco igual.
+- **Suite:** en local, solo los archivos tocados más typecheck y lint. La suite completa es el CI, y se espera en verde.
+- **Cierre:** terminada la tarea, el agente la cierra (`/dev` §10): commit, PR, CI, merge y plan al día, y sigue con la
+  siguiente. El fundador prueba el flujo a mano al final.
+- **Tiempo:** un paso, una hora. Si se pasa, se recorta el alcance y se anota lo recortado.
+- **Tests:** E2E por flujo (a 360 px) y Vitest solo en lo compartido, como dice "Tests (alcance)". Los errores se
+  prueban dentro del flujo que los muestra.
+- **Marca:** `docs/brand.md` sigue mandando sobre colores, tipografía y tono; el MVP no la relaja.
+
 ## Tests (alcance)
 
 Pedido del fundador, 2026-10-31. Lo ya escrito no se saca; vale para lo que se escriba de acá en adelante.
