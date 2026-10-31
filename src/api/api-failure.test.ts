@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   ApiError,
   failureOf,
+  isAccessChanged,
   parseRetryAfter,
   retryAfterMinutes,
   toApiFailure,
@@ -158,6 +159,45 @@ describe("unwrap", () => {
   });
 });
 
+describe("unwrap keeps the body", () => {
+  it("unwrap keeps the body of a rejection on the ApiError", async () => {
+    const body = {
+      error: "item_name_taken",
+      item: { id: "i1", name: "Silla", archived: false },
+    };
+    const error = await unwrap(
+      Promise.resolve({
+        error: body,
+        response: new Response(null, { status: 409 }),
+      }),
+    ).catch((caught: unknown) => caught);
+    expect(error).toBeInstanceOf(ApiError);
+    expect((error as ApiError).body).toEqual(body);
+  });
+
+  it("has no body when the call never got a response", async () => {
+    const error = await unwrap(
+      Promise.reject(new TypeError("fetch failed")),
+    ).catch((caught: unknown) => caught);
+    expect((error as ApiError).body).toBeUndefined();
+  });
+});
+
+describe("isAccessChanged", () => {
+  it.each<[ApiFailure | null, boolean]>([
+    [{ kind: "rejected", status: 403, code: "read_only" }, true],
+    [{ kind: "rejected", status: 403, code: "forbidden" }, true],
+    [{ kind: "rejected", status: 403, code: "business_not_selected" }, false],
+    [{ kind: "rejected", status: 400, code: "forbidden" }, false],
+    [{ kind: "rejected", status: 403, code: null }, false],
+    [{ kind: "unavailable", status: 503 }, false],
+    [{ kind: "network" }, false],
+    [null, false],
+  ])("%j → %j", (failure, expected) => {
+    expect(isAccessChanged(failure)).toBe(expected);
+  });
+});
+
 describe("failureOf", () => {
   it("is null for an error that is not an ApiError", () => {
     expect(failureOf(new Error("boom"))).toBeNull();
@@ -203,7 +243,32 @@ describe("describeFailure", () => {
       "Algo salió mal. Probá de nuevo.",
     ],
     [{ kind: "unauthenticated" }, "Algo salió mal. Probá de nuevo."],
+    [
+      { kind: "rejected", status: 403, code: "read_only" },
+      "No se guardó: tu negocio está en solo lectura. Escribinos para reactivarlo.",
+    ],
+    [
+      { kind: "rejected", status: 403, code: "forbidden" },
+      "Tu rol no permite hacer esto. Si lo necesitás, pedíselo al dueño del negocio.",
+    ],
+    [
+      { kind: "rejected", status: 404, code: "business_not_found" },
+      "Ya no tenés acceso a este negocio.",
+    ],
+    [
+      { kind: "rejected", status: 413, code: "payload_too_large" },
+      "Es demasiado grande para mandarlo de una vez.",
+    ],
   ])("%j", (failure, text) => {
     expect(describeFailure(failure, byCode)).toBe(text);
+  });
+
+  it("a byCode text wins over the generic one", () => {
+    expect(
+      describeFailure(
+        { kind: "rejected", status: 403, code: "read_only" },
+        { read_only: "Texto de la pantalla." },
+      ),
+    ).toBe("Texto de la pantalla.");
   });
 });

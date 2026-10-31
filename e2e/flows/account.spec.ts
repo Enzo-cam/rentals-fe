@@ -68,6 +68,8 @@ test("Salir clears the session, and the next user never sees the previous one", 
   await openScreen(page, "/ingresar");
   await fillSignIn(page, USERS.ana.email, USERS.ana.password);
   await page.getByRole("button", { name: "Entrar" }).click();
+  await page.waitForURL("**/articulos");
+  await page.getByRole("link", { name: "Tu cuenta" }).click();
   await expect(page.getByText("Ana", { exact: true })).toBeVisible();
 
   await page.getByRole("button", { name: "Salir" }).click();
@@ -82,6 +84,8 @@ test("Salir clears the session, and the next user never sees the previous one", 
   await overrideNext(request, { method: "GET", path: "/me", delayMs: 1500 });
   await fillSignIn(page, USERS.beto.email, USERS.beto.password);
   await page.getByRole("button", { name: "Entrar" }).click();
+  await page.waitForURL("**/articulos");
+  await page.getByRole("link", { name: "Tu cuenta" }).click();
   await page.waitForURL("**/cuenta");
   await expect(page.getByText("Ana", { exact: true })).toHaveCount(0);
   await expect(page.getByText(N1)).toHaveCount(0);

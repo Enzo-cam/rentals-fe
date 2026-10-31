@@ -41,6 +41,7 @@ export type ApiRequestLog = {
 export type OverrideSpec = {
   method: string;
   path: string;
+  query?: Record<string, string>;
   times?: number;
   delayMs?: number;
   status?: number;
@@ -49,7 +50,10 @@ export type OverrideSpec = {
   mode?: "reset";
 };
 
-/** Changes the answer of the next `times` matching requests: a delay, a fixed response or a cut connection. */
+/**
+ * Changes the answer of the next `times` matching requests: a delay, a fixed response or a cut connection.
+ * With `query`, only the requests that carry those parameters match.
+ */
 export async function overrideNext(
   request: APIRequestContext,
   spec: OverrideSpec,

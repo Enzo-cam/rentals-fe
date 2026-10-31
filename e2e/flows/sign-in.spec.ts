@@ -24,7 +24,7 @@ test("Ana signs in and lands on /cuenta", async ({ page }) => {
   await openScreen(page, "/ingresar");
   await fillSignIn(page, USERS.ana.email, USERS.ana.password);
   await page.getByRole("button", { name: "Entrar" }).click();
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
 });
 
 /** AC-13 */
@@ -95,7 +95,7 @@ test("a 502 shows the system is down, and trying again signs in", async ({
   );
 
   await page.getByRole("button", { name: "Entrar" }).click();
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
 });
 
 /** AC-12 */
@@ -113,7 +113,8 @@ test("Juan, with two businesses, picks one and /cuenta shows it", async ({
   ).toBeVisible();
   await page.getByRole("button", { name: `${N2} · Dueño` }).click();
 
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
+  await page.goto("/cuenta");
   await expect(page.getByText(N2, { exact: true })).toBeVisible();
   await expect(page.getByText("Dueño", { exact: true })).toBeVisible();
   const selected = (await apiRequests(request)).find(

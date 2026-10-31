@@ -38,7 +38,8 @@ test("Carla defines her password, lands on /cuenta and the token only travels in
   await openScreen(page, passwordLink("carla"));
   await submit(page);
 
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
+  await page.goto("/cuenta");
   await expect(page.getByText("Carla", { exact: true })).toBeVisible();
   await expect(page.getByText(N1)).toBeVisible();
   await expect(page.getByText("Encargado", { exact: true })).toBeVisible();
@@ -91,7 +92,7 @@ test("a short password reaches the API, keeps the form and the token, and a vali
   expect(page.url()).toContain(`#token=${linkToken("carla")}`);
 
   await submit(page);
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
 });
 
 /** AC-5 */
@@ -182,7 +183,7 @@ test("a double click plus Enter, with a slow API, send a single request", async 
   await page.getByRole("button", { name: "Guardar y entrar" }).dblclick();
   await page.getByLabel("Repetí la contraseña").press("Enter");
 
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
   const sent = (await apiRequests(request)).filter(
     (call) => call.path === "/auth/password",
   );
@@ -208,7 +209,7 @@ test("two submits in the same tick send a single request", async ({
     form?.requestSubmit();
   });
 
-  await page.waitForURL("**/cuenta");
+  await page.waitForURL("**/articulos");
   const sent = (await apiRequests(request)).filter(
     (call) => call.path === "/auth/password",
   );

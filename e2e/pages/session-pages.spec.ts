@@ -1,6 +1,7 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 import { resetFakeApi } from "../support/fake-api-control";
+import { expectPrivatePage } from "../support/private-page";
 import {
   N1,
   openScreen,
@@ -12,20 +13,6 @@ import {
 test.beforeEach(async ({ request }) => {
   await resetFakeApi(request);
 });
-
-async function expectPrivatePage(page: Page) {
-  await expect(page.locator("html")).toHaveAttribute("lang", "es-AR");
-  await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
-    "content",
-    "noindex, nofollow",
-  );
-  const overflow = await page.evaluate(
-    () =>
-      document.documentElement.scrollWidth -
-      document.documentElement.clientWidth,
-  );
-  expect(overflow).toBeLessThanOrEqual(0);
-}
 
 /** AC-20: INV-FE-03 and mobile-first at 360 px; the long business name is on screen where there is one. */
 test.describe("the four screens of the session", () => {

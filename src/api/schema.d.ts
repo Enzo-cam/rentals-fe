@@ -556,6 +556,914 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the items of the business
+         * @description Active items by default, ordered by normalized name. status is active, archived or all. category matches the normalized category; q matches the name or the code, ignoring case (% and _ are literal). Keyset pagination: repeat the same URL with cursor=nextCursor and the same filters. priceCents is present only for roles that can view prices. Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    status?: "active" | "archived" | "all";
+                    category?: string;
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemPageWithPrices"] | components["schemas"]["ItemPage"];
+                    };
+                };
+                /** @description invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and these filters. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business of the session. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create an item
+         * @description Texts are trimmed and inner whitespace is collapsed. Names and codes are unique per business ignoring case and spacing, archived items included. Needs manage_items and a business that is not read only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        totalStock: number;
+                        priceCents: number;
+                        outOfService?: number;
+                        category?: string | null;
+                        code?: string | null;
+                        description?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemWithPrice"];
+                    };
+                };
+                /** @description invalid_request or out_of_service_exceeds_stock: the body is not valid, or outOfService is above totalStock. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage items) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or item_not_found: the user has no active membership in the business, or the business has no item with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description item_name_taken or item_code_taken: another item of the business, archived or not, has that name or code. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemConflict"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an item
+         * @description An archived item can be read. priceCents is present only for roles that can view prices. Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The item. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemWithPrice"] | components["schemas"]["Item"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or item_not_found: the user has no active membership in the business, or the business has no item with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit an item
+         * @description Only the keys sent change; null clears category, code or description. An archived item can be edited and stays archived. Needs manage_items and a business that is not read only.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        totalStock?: number;
+                        priceCents?: number;
+                        outOfService?: number;
+                        category?: string | null;
+                        code?: string | null;
+                        description?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description The item. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemWithPrice"];
+                    };
+                };
+                /** @description invalid_request or out_of_service_exceeds_stock: the body or the id is not valid, or outOfService would be above totalStock. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage items) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or item_not_found: the user has no active membership in the business, or the business has no item with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description item_name_taken or item_code_taken: another item of the business, archived or not, has that name or code. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemConflict"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/items/{id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive an item
+         * @description Sets archived_at and keeps the date of an earlier archive; repeating it changes nothing. Nothing is deleted. Needs manage_items and a business that is not read only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The item. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemWithPrice"];
+                    };
+                };
+                /** @description invalid_request: the body or the id is not valid. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage items) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or item_not_found: the user has no active membership in the business, or the business has no item with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/{id}/reactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reactivate an archived item
+         * @description Clears archived_at; repeating it changes nothing. Needs manage_items and a business that is not read only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The item. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemWithPrice"];
+                    };
+                };
+                /** @description invalid_request: the body or the id is not valid. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage items) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or item_not_found: the user has no active membership in the business, or the business has no item with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/item-categories": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the categories of the business
+         * @description One entry per normalized category, ordered by it, with the name as it was written, the smallest in binary order. The categories of archived items are included. Same pagination as GET /items. Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemCategoryPage"];
+                    };
+                };
+                /** @description invalid_request or invalid_cursor. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business of the session. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/import/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Preview a pasted item list
+         * @description Reads the pasted text and answers what was understood of every row and its errors, including names and codes that already exist (archived items included). Writes nothing. One item per line, tab or semicolon separated per line: name, quantity, price and optionally category, code, description. A first line whose quantity and price cells have no digit is the header. Prices are whole pesos, with or without a leading $ and dots for thousands (1500, 1.500, $ 1.500); any comma makes the price invalid. They are stored in cents. At most 500 rows. Needs manage_items and a business that is not read only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ItemImportRequest"];
+                };
+            };
+            responses: {
+                /** @description The preview. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemImportPreview"];
+                    };
+                };
+                /** @description invalid_request, empty_list or too_many_rows: the body is not valid, the list has no rows, or it has more than 500. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage items) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 1 MiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/items/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create the items of a pasted list
+         * @description All or nothing: the list is read again and, if any row has an error, nothing is written and the marked preview comes back. Repeating a confirmed list is rejected with every name taken. Needs manage_items and a business that is not read only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ItemImportRequest"];
+                };
+            };
+            responses: {
+                /** @description Created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemImportCreated"];
+                    };
+                };
+                /** @description invalid_request, empty_list or too_many_rows: the body is not valid, the list has no rows, or it has more than 500. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage items) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 1 MiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description import_rejected: some row has an error; nothing was written. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemImportRejected"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/auth/login": {
         parameters: {
             query?: never;
@@ -1468,6 +2376,94 @@ export interface components {
             id: string;
             name: string;
             readOnly: boolean;
+        };
+        ItemWithPrice: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            totalStock: number;
+            outOfService: number;
+            category: string | null;
+            code: string | null;
+            description: string | null;
+            archived: boolean;
+            priceCents: number;
+        };
+        ItemConflict: {
+            /** @enum {string} */
+            error: "item_name_taken" | "item_code_taken";
+            item: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                archived: boolean;
+            };
+        };
+        Item: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            totalStock: number;
+            outOfService: number;
+            category: string | null;
+            code: string | null;
+            description: string | null;
+            archived: boolean;
+        };
+        ItemPageWithPrices: {
+            items: components["schemas"]["ItemWithPrice"][];
+            nextCursor: string | null;
+        };
+        ItemPage: {
+            items: components["schemas"]["Item"][];
+            nextCursor: string | null;
+        };
+        ItemCategoryPage: {
+            items: components["schemas"]["ItemCategory"][];
+            nextCursor: string | null;
+        };
+        ItemCategory: {
+            name: string;
+        };
+        ItemImportPreview: {
+            header: {
+                line: number;
+                cells: string[];
+            } | null;
+            rows: components["schemas"]["ItemImportRow"][];
+            valid: boolean;
+        };
+        ItemImportRow: {
+            line: number;
+            name: string | null;
+            totalStock: number | null;
+            priceCents: number | null;
+            category: string | null;
+            code: string | null;
+            description: string | null;
+            errors: components["schemas"]["ItemImportRowError"][];
+        };
+        ItemImportRowError: {
+            /** @enum {string} */
+            code: "missing_columns" | "too_many_columns" | "name_invalid" | "stock_invalid" | "price_invalid" | "category_invalid" | "code_invalid" | "description_invalid" | "name_repeated" | "code_repeated" | "name_taken" | "code_taken";
+            otherLine?: number;
+            item?: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+                archived: boolean;
+            };
+        };
+        ItemImportRequest: {
+            text: string;
+        };
+        ItemImportCreated: {
+            created: number;
+        };
+        ItemImportRejected: {
+            /** @enum {string} */
+            error: "import_rejected";
+            preview: components["schemas"]["ItemImportPreview"];
         };
         Business: {
             /** Format: uuid */

@@ -6,13 +6,19 @@ export type ApiFailure =
   | { kind: "unauthenticated" }
   | { kind: "rejected"; status: number; code: string | null };
 
+/**
+ * `body` is the JSON of a response that was not ok, as it arrived (`undefined` when there was no response): some
+ * screens need more than the code, like the item that holds a taken name.
+ */
 export class ApiError extends Error {
   readonly failure: ApiFailure;
+  readonly body: unknown;
 
-  constructor(failure: ApiFailure) {
+  constructor(failure: ApiFailure, body?: unknown) {
     super(failure.kind);
     this.name = "ApiError";
     this.failure = failure;
+    this.body = body;
   }
 }
 
@@ -69,6 +75,7 @@ export async function unwrap<T>(call: Call<T>): Promise<T> {
   if (!response.ok) {
     throw new ApiError(
       toApiFailure(response.status, error, response.headers.get("retry-after")),
+      error,
     );
   }
   return data as T;
@@ -79,6 +86,15 @@ export function isLeavingSession(failure: ApiFailure | null): boolean {
   return (
     failure?.kind === "unauthenticated" ||
     (failure?.kind === "rejected" && failure.code === "business_not_selected")
+  );
+}
+
+/** A 403 that says the role or the state of the business changed: the screen has to ask `GET /me` again. */
+export function isAccessChanged(failure: ApiFailure | null): boolean {
+  return (
+    failure?.kind === "rejected" &&
+    failure.status === 403 &&
+    (failure.code === "read_only" || failure.code === "forbidden")
   );
 }
 

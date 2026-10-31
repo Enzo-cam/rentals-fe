@@ -1,0 +1,73 @@
+{
+  "items": [
+    {
+      "id": "bbbbbbbb-0000-4000-8000-000000000001",
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "name": "Silla Tiffany blanca",
+      "totalStock": 120,
+      "outOfService": 4,
+      "priceCents": 150000,
+      "category": "Mobiliario",
+      "code": "SIL-01",
+      "description": null,
+      "archived": false
+    },
+    {
+      "id": "bbbbbbbb-0000-4000-8000-000000000002",
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "name": "Copa de vino",
+      "totalStock": 300,
+      "outOfService": 0,
+      "priceCents": 35000,
+      "category": "Vajilla",
+      "code": null,
+      "description": null,
+      "archived": false
+    },
+    {
+      "id": "bbbbbbbb-0000-4000-8000-000000000003",
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "name": "Tablón rectangular de 2,40 m con caballetes plegables para eventos al aire libre en Corrientes y Resistencia",
+      "totalStock": 25,
+      "outOfService": 0,
+      "priceCents": 0,
+      "category": null,
+      "code": null,
+      "description": null,
+      "archived": false
+    },
+    {
+      "id": "bbbbbbbb-0000-4000-8000-000000000004",
+      "businessId": "11111111-1111-4111-8111-111111111111",
+      "name": "Living blanco",
+      "totalStock": 2,
+      "outOfService": 0,
+      "priceCents": 4500000,
+      "category": "Mobiliario",
+      "code": "LIV-1",
+      "description": null,
+      "archived": true
+    },
+    {
+      "id": "bbbbbbbb-0000-4000-8000-000000000005",
+      "businessId": "33333333-3333-4333-8333-333333333333",
+      "name": "Silla plegable negra",
+      "totalStock": 50,
+      "outOfService": 0,
+      "priceCents": 90000,
+      "category": "Mobiliario",
+      "code": null,
+      "description": null,
+      "archived": false
+    }
+  ],
+  "categories": {
+    "11111111-1111-4111-8111-111111111111": [
+      "Mantelería",
+      "Mobiliario",
+      "Vajilla"
+    ],
+    "22222222-2222-4222-8222-222222222222": [],
+    "33333333-3333-4333-8333-333333333333": ["Mobiliario"]
+  }
+}

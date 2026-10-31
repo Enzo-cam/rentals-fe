@@ -3,7 +3,16 @@ import { expect, test } from "@playwright/test";
 import { FRONT_ORIGIN } from "../support/env";
 import { apiRequests, resetFakeApi } from "../support/fake-api-control";
 
-const GUARDED = ["/cuenta", "/elegir-negocio"];
+const ITEM_ID = "bbbbbbbb-0000-4000-8000-000000000001";
+const GUARDED = [
+  "/cuenta",
+  "/elegir-negocio",
+  "/articulos",
+  "/articulos/nuevo",
+  `/articulos/${ITEM_ID}`,
+  `/articulos/${ITEM_ID}/editar`,
+  "/articulos/cargar-lista",
+];
 const UNGUARDED = ["/", "/ingresar", "/definir-contrasena"];
 
 test.beforeEach(async ({ request }) => {

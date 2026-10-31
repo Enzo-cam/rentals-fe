@@ -29,15 +29,24 @@ export async function sessionCookie(context: BrowserContext) {
 
 export type BrowserRequest = { url: string; headers: Record<string, string> };
 
-/** Collects the URL and every header of what the browser sends, to prove a secret never leaves the body. */
+/**
+ * Collects the URL and every header of what the browser sends, to prove a secret never leaves the body. The URL is
+ * kept as soon as the request starts: a request that the page cancels (a link prefetch cut by a navigation) never gets
+ * its headers, and waiting for them would fail the test when it ends.
+ */
 export function trackBrowserRequests(page: Page): BrowserRequest[] {
   const seen: BrowserRequest[] = [];
   page.on("request", (request) => {
-    void request.allHeaders().then((headers) => {
-      const url = new URL(request.url());
-      url.hash = "";
-      seen.push({ url: url.href, headers });
-    });
+    const url = new URL(request.url());
+    url.hash = "";
+    const sent: BrowserRequest = { url: url.href, headers: {} };
+    seen.push(sent);
+    request.allHeaders().then(
+      (headers) => {
+        sent.headers = headers;
+      },
+      () => {},
+    );
   });
   return seen;
 }
@@ -50,6 +59,8 @@ export const USERS = {
   juan: { email: "juan@example.com", password: "clave de juan 1" },
   beto: { email: "beto@example.com", password: "clave de beto 1" },
   nora: { email: "nora@example.com", password: "clave de nora 1" },
+  marta: { email: "marta@example.com", password: "clave de marta 1" },
+  olga: { email: "olga@example.com", password: "clave de olga 1" },
 };
 
 /** `networkidle` so the form is hydrated: a submit before that would be a native one. */
