@@ -89,13 +89,13 @@ scripts/                        api-sync, api-check, check-client-env
 
 ## Módulos de referencia
 
-Se completan con la primera pantalla que pase `/review-pr`.
+Se completan con cada pantalla que pase `/review-pr`. Las filas con `—` todavía no tienen un módulo que lo cubra.
 
 | Para | Mirá |
 |---|---|
-| Una pantalla de la aplicación | — |
+| Una pantalla de la aplicación | `src/features/items/components/items-screen.tsx` (lista, filtros en la URL, "Ver más", rol y solo lectura) |
 | Una página pública | — |
-| Un formulario con validación | — |
+| Un formulario con validación | `src/features/items/components/item-form.tsx` (alta y edición; react-hook-form + Zod solo de forma) |
 | Un test de componente | — |
 
 ## Contrato para agentes
@@ -114,6 +114,19 @@ Se completan con la primera pantalla que pase `/review-pr`.
   casos y bordes cubren los tests.
 - Un solo foco por PR.
 - Toda PR enlaza su ticket como `Enzo-cam/rentals-be#N`.
+
+## Tests (alcance)
+
+Pedido del fundador, 2026-10-31. Lo ya escrito no se saca; vale para lo que se escriba de acá en adelante.
+
+- **No hay un `error.ts` con su `error.test.ts` por cada API ni por cada feature.** Los errores de una feature se
+  prueban dentro del flujo que los muestra (el E2E de la pantalla), no uno por uno.
+- **Se prueba el conjunto, no la pieza suelta:** un flujo de punta a punta, o un módulo importante con su
+  comportamiento completo, antes que un test por función o por archivo.
+- **Vitest va solo en lo que importan otros módulos y es importante:** funciones generales compartidas (por ejemplo
+  `src/lib/format`, el cliente de la API, la sesión) y módulos que sostienen un invariante. Una función que usa un solo
+  componente se cubre desde el componente.
+- Si dudás entre agregar un test chico y ampliar uno de conjunto, ampliá el de conjunto.
 
 ## Comentarios
 
