@@ -838,7 +838,7 @@ export interface paths {
         head?: never;
         /**
          * Edit an item
-         * @description Only the keys sent change; null clears category, code or description. An archived item can be edited and stays archived. Needs manage_items and a business that is not read only.
+         * @description Only the keys sent change; null clears category, code or description. An archived item can be edited and stays archived. Lowering the capacity (totalStock minus outOfService) below what is reserved at some moment from now on is a 409 stock_below_reserved; equal to the most reserved is allowed. Needs manage_items and a business that is not read only.
          */
         patch: {
             parameters: {
@@ -908,13 +908,13 @@ export interface paths {
                         "application/json": components["schemas"]["Error"];
                     };
                 };
-                /** @description item_name_taken or item_code_taken: another item of the business, archived or not, has that name or code. */
+                /** @description item_name_taken or item_code_taken (item: who has it), or stock_below_reserved: the new capacity (totalStock minus outOfService) is below the most the item is occupied at one moment from now on. reserved is that maximum and bookings (up to 50, by deliveryAt and id; hasMore if there are more) are the ones occupying a moment above the new capacity. Nothing changes. */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ItemConflict"];
+                        "application/json": components["schemas"]["ItemConflict"] | components["schemas"]["StockBelowReserved"];
                     };
                 };
                 /** @description payload_too_large: the body is over 16 KiB. */
@@ -959,7 +959,7 @@ export interface paths {
         put?: never;
         /**
          * Archive an item
-         * @description Sets archived_at and keeps the date of an earlier archive; repeating it changes nothing. Nothing is deleted. Needs manage_items and a business that is not read only.
+         * @description Sets archived_at and keeps the date of an earlier archive; repeating it changes nothing. Nothing is deleted. An item that a booking occupies at some moment from now on is a 409 item_has_bookings. Needs manage_items and a business that is not read only.
          */
         post: {
             parameters: {
@@ -1015,6 +1015,15 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description item_has_bookings: a booking occupies the item at some moment from now on (a hold not yet expired, a confirmed one, or a delivered one without a return, overdue included). bookings (up to 50, by deliveryAt and id; hasMore if there are more) are those bookings. Cancelled, returned and expired holds do not count. Nothing changes. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ItemHasBookings"];
                     };
                 };
                 /** @description payload_too_large: the body is over 16 KiB. */
@@ -1445,6 +1454,1343 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["ItemImportRejected"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the customers of the business
+         * @description Ordered by normalized name. q matches the name, ignoring case (% and _ are literal), or, when it has digits, the digits of the WhatsApp. Keyset pagination: repeat the same URL with cursor=nextCursor and the same q. Needs manage_customers; allowed also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CustomerPage"];
+                    };
+                };
+                /** @description invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and this q. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected or forbidden: the session has no business yet, or the role cannot manage customers. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business of the session. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a customer
+         * @description Name and WhatsApp, both required. The name is trimmed and its inner whitespace collapsed; the WhatsApp is stored as written (trimmed). WhatsApp numbers are unique per business compared by their 10 digits, without the 54 country code, the 9 of mobiles or the leading 0: "379 4-123456", "+54 9 3794 123456" and "03794 123456" are the same number. A number with the 15 or without 10 digits is invalid_whatsapp. Needs manage_customers and a business that is not read only.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        whatsapp: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Customer"];
+                    };
+                };
+                /** @description invalid_request or invalid_whatsapp: the body is not valid, or the WhatsApp has no 10 digits. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage customers) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or customer_not_found: the user has no active membership in the business, or the business has no customer with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description whatsapp_taken: another customer of the business has that WhatsApp number. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CustomerConflict"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/customers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit a customer
+         * @description Only the keys sent change. The same WhatsApp rules as the creation apply; the customer itself does not clash with its own number. Needs manage_customers and a business that is not read only.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        whatsapp?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description The customer. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Customer"];
+                    };
+                };
+                /** @description invalid_request or invalid_whatsapp: the body or the id is not valid, or the WhatsApp has no 10 digits. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage customers) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or customer_not_found: the user has no active membership in the business, or the business has no customer with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description whatsapp_taken: another customer of the business has that WhatsApp number. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CustomerConflict"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Check what is free for a period
+         * @description The active items of the business, ordered by normalized name, with their availability in [from, to). from and to are required ISO 8601 instants with an offset, for example 2026-11-13T08:00:00-03:00; to must be after from and at most 366 days after it. reserved is the most the item is booked at a single moment of the period, not the sum of the bookings; available = totalStock - outOfService - reserved and can be negative when an overdue pickup leaves the item overbooked. ids (up to 100, comma separated, no repeats), category and q filter like GET /items. Keyset pagination: repeat the same URL with cursor=nextCursor and the same period and filters. Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query: {
+                    limit?: number;
+                    cursor?: string;
+                    from: string;
+                    to: string;
+                    ids?: string;
+                    category?: string;
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AvailabilityPage"];
+                    };
+                };
+                /** @description invalid_request, invalid_period or invalid_cursor: a query parameter is not valid, to is not after from or is more than 366 days after it, or the cursor does not belong to this list, period and filters. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business of the session. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the bookings of the business
+         * @description Ordered by delivery date and id, every status unless status is given. Keyset pagination: repeat the same URL with cursor=nextCursor and the same status. A hold past its expiry is listed with holdExpired true. Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                    status?: "hold" | "confirmed" | "delivered" | "returned" | "cancelled";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingPageWithPrices"] | components["schemas"]["BookingPage"];
+                    };
+                };
+                /** @description invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and this status. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business of the session. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a booking
+         * @description Born as a hold or confirmed, once per Idempotency-Key (a UUID, required): the same key with the same body returns the same booking, the same key with another body is 422 idempotency_key_reused, and a key is good for 72 hours. A hold needs holdExpiresAt, after now and not after deliveryAt; a confirmed booking must not have one. deliveryAt may be in the past (it is already out), pickupAt must be after deliveryAt and after now. Each line fixes its price: priceCents if sent, else the item list price at this moment. freightCents is 0 by default and deposit is optional. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices (the roles that create always see prices).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID the client generates once per operation and repeats on retries. */
+                    "idempotency-key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "hold" | "confirmed";
+                        /** Format: uuid */
+                        customerId: string;
+                        /** Format: date-time */
+                        deliveryAt: string;
+                        /** Format: date-time */
+                        pickupAt: string;
+                        /** Format: date-time */
+                        holdExpiresAt?: string;
+                        address?: string;
+                        note?: string;
+                        /** @default 0 */
+                        freightCents?: number;
+                        deposit?: {
+                            amountCents: number;
+                            /** Format: date */
+                            date: string;
+                        };
+                        lines: {
+                            /** Format: uuid */
+                            itemId: string;
+                            quantity: number;
+                            priceCents?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Created. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request, invalid_period, pickup_in_past, invalid_hold_expiry or amount_too_large: the body or the header is not valid, the pickup is not after the delivery, the pickup is not in the future, the hold expiry is not after now and up to the delivery, or the total is above Number.MAX_SAFE_INTEGER. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found, customer_not_found or item_not_found: the user has no active membership in the business, or the business has no such customer or item. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description insufficient_stock (items: for each item short, what the line asks and what is free in the booking period without it) or item_archived (itemIds: the archived items the booking would take). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InsufficientStock"] | components["schemas"]["ItemArchived"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description idempotency_key_reused: the key was used with another request in the last 72 hours. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookings/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a booking
+         * @description Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The booking. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Edit a booking
+         * @description Only the keys sent change, and sending what the booking already has changes nothing (200, nothing written); the values are absolute, so there is no Idempotency-Key. lines is the complete list by item: an item that is not in it is removed (its line is kept with removed_at), a new one takes priceCents or the list price of this moment, and one that stays keeps its price. address and note accept null to clear them. What can change depends on the status: a hold, everything; a confirmed booking, everything but holdExpiresAt and without changing the price of an existing line (line_price_locked); a delivered one, only pickupAt, address and note; a returned or cancelled one, nothing (booking_not_editable). The deposit is loaded once (deposit_already_set for another amount or date). pickupAt is compared with now only if it changes, and holdExpiresAt too (after now and not after deliveryAt). A change that makes an item hold more units, in other dates or quantities, or moves the expiry of an expired hold, is checked against the stock; one that does not raise the occupation is accepted even if an overdue booking already exceeds the stock. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        customerId?: string;
+                        /** Format: date-time */
+                        deliveryAt?: string;
+                        /** Format: date-time */
+                        pickupAt?: string;
+                        /** Format: date-time */
+                        holdExpiresAt?: string;
+                        address?: string | null;
+                        note?: string | null;
+                        freightCents?: number;
+                        deposit?: {
+                            amountCents: number;
+                            /** Format: date */
+                            date: string;
+                        };
+                        lines?: {
+                            /** Format: uuid */
+                            itemId: string;
+                            quantity: number;
+                            priceCents?: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description The booking after the edit. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request, invalid_period, pickup_in_past, invalid_hold_expiry or amount_too_large: the body or the id is not valid (an empty body included), the pickup is not after the delivery, the changed pickup is not in the future, the hold expiry is not after now and up to the delivery, or the total is above Number.MAX_SAFE_INTEGER. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found, booking_not_found, customer_not_found or item_not_found: the user has no active membership in the business, or the business has no such booking, customer or item. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description booking_not_editable, line_price_locked or deposit_already_set; insufficient_stock (items: for each item short, what the line asks and what is free in the booking period without it) or item_archived (itemIds: the archived items the booking would take). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InsufficientStock"] | components["schemas"]["ItemArchived"] | components["schemas"]["BookingConflict"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/bookings/{id}/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a booking
+         * @description Moves a hold to confirmed and clears holdExpiresAt, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. Only a hold can be confirmed. Confirming an expired hold takes the stock again, so it is checked like a new booking: insufficient_stock or item_archived if it no longer fits, and pickup_in_past if its pickup is not after now. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID the client generates once per operation and repeats on retries. */
+                    "idempotency-key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The booking after the change. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InsufficientStock"] | components["schemas"]["ItemArchived"] | components["schemas"]["InvalidTransition"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description idempotency_key_reused: the key was used with another request in the last 72 hours. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookings/{id}/deliver": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record the delivery of a booking
+         * @description Moves a confirmed booking to delivered and sets deliveredAt to now, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. It records a fact, so it does not check the stock: a delivery ahead of schedule holds the units from that instant. Needs record_delivery_and_return (crew too) and a business that is not read only. Answers Booking for roles without view_prices and BookingWithPrices for the rest.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID the client generates once per operation and repeats on retries. */
+                    "idempotency-key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The booking after the change. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InsufficientStock"] | components["schemas"]["ItemArchived"] | components["schemas"]["InvalidTransition"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description idempotency_key_reused: the key was used with another request in the last 72 hours. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookings/{id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record the return of a booking
+         * @description Moves a delivered booking to returned and sets returnRecordedAt to now, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. The units are free from that instant. Needs record_delivery_and_return (crew too) and a business that is not read only. Answers Booking for roles without view_prices and BookingWithPrices for the rest.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID the client generates once per operation and repeats on retries. */
+                    "idempotency-key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The booking after the change. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InsufficientStock"] | components["schemas"]["ItemArchived"] | components["schemas"]["InvalidTransition"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description idempotency_key_reused: the key was used with another request in the last 72 hours. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookings/{id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cancel a booking
+         * @description Moves a hold or a confirmed booking to cancelled, sets cancelledAt to now and clears holdExpiresAt, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. A delivered booking is not cancelled. The units are free at once and the deposit stays as it was. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description A UUID the client generates once per operation and repeats on retries. */
+                    "idempotency-key": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The booking after the change. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again). */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["InsufficientStock"] | components["schemas"]["ItemArchived"] | components["schemas"]["InvalidTransition"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description idempotency_key_reused: the key was used with another request in the last 72 hours. */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
                     };
                 };
                 /** @description internal_error */
@@ -2399,6 +3745,31 @@ export interface components {
                 archived: boolean;
             };
         };
+        StockBelowReserved: {
+            /** @enum {string} */
+            error: "stock_below_reserved";
+            reserved: number;
+            bookings: components["schemas"]["BookingRef"][];
+            hasMore: boolean;
+        };
+        BookingRef: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "hold" | "confirmed" | "delivered" | "returned" | "cancelled";
+            /** Format: date-time */
+            deliveryAt: string;
+            /** Format: date-time */
+            pickupAt: string;
+            quantity: number;
+            customerName: string;
+        };
+        ItemHasBookings: {
+            /** @enum {string} */
+            error: "item_has_bookings";
+            bookings: components["schemas"]["BookingRef"][];
+            hasMore: boolean;
+        };
         Item: {
             /** Format: uuid */
             id: string;
@@ -2464,6 +3835,140 @@ export interface components {
             /** @enum {string} */
             error: "import_rejected";
             preview: components["schemas"]["ItemImportPreview"];
+        };
+        Customer: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            whatsapp: string;
+        };
+        CustomerConflict: {
+            /** @enum {string} */
+            error: "whatsapp_taken";
+            customer: components["schemas"]["Customer"];
+        };
+        CustomerPage: {
+            items: components["schemas"]["Customer"][];
+            nextCursor: string | null;
+        };
+        AvailabilityPage: {
+            items: components["schemas"]["ItemAvailability"][];
+            nextCursor: string | null;
+        };
+        ItemAvailability: {
+            /** Format: uuid */
+            itemId: string;
+            name: string;
+            totalStock: number;
+            outOfService: number;
+            reserved: number;
+            available: number;
+        };
+        BookingWithPrices: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "hold" | "confirmed" | "delivered" | "returned" | "cancelled";
+            /** Format: date-time */
+            holdExpiresAt: string | null;
+            holdExpired: boolean;
+            customer: components["schemas"]["Customer"];
+            /** Format: date-time */
+            deliveryAt: string;
+            /** Format: date-time */
+            pickupAt: string;
+            address: string | null;
+            note: string | null;
+            /** Format: date-time */
+            deliveredAt: string | null;
+            /** Format: date-time */
+            returnRecordedAt: string | null;
+            /** Format: date-time */
+            cancelledAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            balanceDueCents: number;
+            lines: components["schemas"]["BookingLineWithPrice"][];
+            freightCents: number;
+            deposit: {
+                amountCents: number;
+                /** Format: date */
+                date: string;
+            } | null;
+        };
+        BookingLineWithPrice: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            quantity: number;
+            priceCents: number;
+        };
+        Booking: {
+            /** Format: uuid */
+            id: string;
+            /** @enum {string} */
+            status: "hold" | "confirmed" | "delivered" | "returned" | "cancelled";
+            /** Format: date-time */
+            holdExpiresAt: string | null;
+            holdExpired: boolean;
+            customer: components["schemas"]["Customer"];
+            /** Format: date-time */
+            deliveryAt: string;
+            /** Format: date-time */
+            pickupAt: string;
+            address: string | null;
+            note: string | null;
+            /** Format: date-time */
+            deliveredAt: string | null;
+            /** Format: date-time */
+            returnRecordedAt: string | null;
+            /** Format: date-time */
+            cancelledAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            balanceDueCents: number;
+            lines: components["schemas"]["BookingLine"][];
+        };
+        BookingLine: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            itemId: string;
+            itemName: string;
+            quantity: number;
+        };
+        InsufficientStock: {
+            /** @enum {string} */
+            error: "insufficient_stock";
+            items: {
+                /** Format: uuid */
+                itemId: string;
+                requested: number;
+                available: number;
+            }[];
+        };
+        ItemArchived: {
+            /** @enum {string} */
+            error: "item_archived";
+            itemIds: string[];
+        };
+        BookingConflict: {
+            /** @enum {string} */
+            error: "booking_not_editable" | "line_price_locked" | "deposit_already_set";
+        };
+        InvalidTransition: {
+            /** @enum {string} */
+            error: "invalid_transition";
+        };
+        BookingPageWithPrices: {
+            items: components["schemas"]["BookingWithPrices"][];
+            nextCursor: string | null;
+        };
+        BookingPage: {
+            items: components["schemas"]["Booking"][];
+            nextCursor: string | null;
         };
         Business: {
             /** Format: uuid */

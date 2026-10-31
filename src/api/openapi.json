@@ -303,6 +303,104 @@
         ],
         "additionalProperties": false
       },
+      "StockBelowReserved": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "stock_below_reserved"
+            ]
+          },
+          "reserved": {
+            "type": "integer"
+          },
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingRef"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "error",
+          "reserved",
+          "bookings",
+          "hasMore"
+        ],
+        "additionalProperties": false
+      },
+      "BookingRef": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "hold",
+              "confirmed",
+              "delivered",
+              "returned",
+              "cancelled"
+            ]
+          },
+          "deliveryAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "customerName": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "deliveryAt",
+          "pickupAt",
+          "quantity",
+          "customerName"
+        ],
+        "additionalProperties": false
+      },
+      "ItemHasBookings": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "item_has_bookings"
+            ]
+          },
+          "bookings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingRef"
+            }
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "error",
+          "bookings",
+          "hasMore"
+        ],
+        "additionalProperties": false
+      },
       "Item": {
         "type": "object",
         "properties": {
@@ -624,6 +722,551 @@
         "required": [
           "error",
           "preview"
+        ],
+        "additionalProperties": false
+      },
+      "Customer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "whatsapp": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "whatsapp"
+        ],
+        "additionalProperties": false
+      },
+      "CustomerConflict": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "whatsapp_taken"
+            ]
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          }
+        },
+        "required": [
+          "error",
+          "customer"
+        ],
+        "additionalProperties": false
+      },
+      "CustomerPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Customer"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "additionalProperties": false
+      },
+      "AvailabilityPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ItemAvailability"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "additionalProperties": false
+      },
+      "ItemAvailability": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "totalStock": {
+            "type": "integer"
+          },
+          "outOfService": {
+            "type": "integer"
+          },
+          "reserved": {
+            "type": "integer"
+          },
+          "available": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "itemId",
+          "name",
+          "totalStock",
+          "outOfService",
+          "reserved",
+          "available"
+        ],
+        "additionalProperties": false
+      },
+      "BookingWithPrices": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "hold",
+              "confirmed",
+              "delivered",
+              "returned",
+              "cancelled"
+            ]
+          },
+          "holdExpiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "holdExpired": {
+            "type": "boolean"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "deliveryAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deliveredAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "returnRecordedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "cancelledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "balanceDueCents": {
+            "type": "integer"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingLineWithPrice"
+            }
+          },
+          "freightCents": {
+            "type": "integer"
+          },
+          "deposit": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "amountCents": {
+                "type": "integer"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "amountCents",
+              "date"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "holdExpiresAt",
+          "holdExpired",
+          "customer",
+          "deliveryAt",
+          "pickupAt",
+          "address",
+          "note",
+          "deliveredAt",
+          "returnRecordedAt",
+          "cancelledAt",
+          "createdAt",
+          "balanceDueCents",
+          "lines",
+          "freightCents",
+          "deposit"
+        ],
+        "additionalProperties": false
+      },
+      "BookingLineWithPrice": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "priceCents": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "itemId",
+          "itemName",
+          "quantity",
+          "priceCents"
+        ],
+        "additionalProperties": false
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "hold",
+              "confirmed",
+              "delivered",
+              "returned",
+              "cancelled"
+            ]
+          },
+          "holdExpiresAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "holdExpired": {
+            "type": "boolean"
+          },
+          "customer": {
+            "$ref": "#/components/schemas/Customer"
+          },
+          "deliveryAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deliveredAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "returnRecordedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "cancelledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "balanceDueCents": {
+            "type": "integer"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingLine"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "holdExpiresAt",
+          "holdExpired",
+          "customer",
+          "deliveryAt",
+          "pickupAt",
+          "address",
+          "note",
+          "deliveredAt",
+          "returnRecordedAt",
+          "cancelledAt",
+          "createdAt",
+          "balanceDueCents",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "BookingLine": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "itemName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "itemId",
+          "itemName",
+          "quantity"
+        ],
+        "additionalProperties": false
+      },
+      "InsufficientStock": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "insufficient_stock"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                "requested": {
+                  "type": "integer"
+                },
+                "available": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "itemId",
+                "requested",
+                "available"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "error",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ItemArchived": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "item_archived"
+            ]
+          },
+          "itemIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        },
+        "required": [
+          "error",
+          "itemIds"
+        ],
+        "additionalProperties": false
+      },
+      "BookingConflict": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "booking_not_editable",
+              "line_price_locked",
+              "deposit_already_set"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "InvalidTransition": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "enum": [
+              "invalid_transition"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "BookingPageWithPrices": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingWithPrices"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
+        ],
+        "additionalProperties": false
+      },
+      "BookingPage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor"
         ],
         "additionalProperties": false
       },
@@ -1587,7 +2230,7 @@
     "/items/{id}": {
       "patch": {
         "summary": "Edit an item",
-        "description": "Only the keys sent change; null clears category, code or description. An archived item can be edited and stays archived. Needs manage_items and a business that is not read only.",
+        "description": "Only the keys sent change; null clears category, code or description. An archived item can be edited and stays archived. Lowering the capacity (totalStock minus outOfService) below what is reserved at some moment from now on is a 409 stock_below_reserved; equal to the most reserved is allowed. Needs manage_items and a business that is not read only.",
         "parameters": [
           {
             "schema": {
@@ -1708,11 +2351,18 @@
             }
           },
           "409": {
-            "description": "item_name_taken or item_code_taken: another item of the business, archived or not, has that name or code.",
+            "description": "item_name_taken or item_code_taken (item: who has it), or stock_below_reserved: the new capacity (totalStock minus outOfService) is below the most the item is occupied at one moment from now on. reserved is that maximum and bookings (up to 50, by deliveryAt and id; hasMore if there are more) are the ones occupying a moment above the new capacity. Nothing changes.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemConflict"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ItemConflict"
+                    },
+                    {
+                      "$ref": "#/components/schemas/StockBelowReserved"
+                    }
+                  ]
                 }
               }
             }
@@ -1837,7 +2487,7 @@
     "/items/{id}/archive": {
       "post": {
         "summary": "Archive an item",
-        "description": "Sets archived_at and keeps the date of an earlier archive; repeating it changes nothing. Nothing is deleted. Needs manage_items and a business that is not read only.",
+        "description": "Sets archived_at and keeps the date of an earlier archive; repeating it changes nothing. Nothing is deleted. An item that a booking occupies at some moment from now on is a 409 item_has_bookings. Needs manage_items and a business that is not read only.",
         "parameters": [
           {
             "schema": {
@@ -1896,6 +2546,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "item_has_bookings: a booking occupies the item at some moment from now on (a hold not yet expired, a confirmed one, or a delivered one without a return, overdue included). bookings (up to 50, by deliveryAt and id; hasMore if there are more) are those bookings. Cancelled, returned and expired holds do not count. Nothing changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemHasBookings"
                 }
               }
             }
@@ -2312,6 +2972,1748 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ItemImportRejected"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers": {
+      "post": {
+        "summary": "Create a customer",
+        "description": "Name and WhatsApp, both required. The name is trimmed and its inner whitespace collapsed; the WhatsApp is stored as written (trimmed). WhatsApp numbers are unique per business compared by their 10 digits, without the 54 country code, the 9 of mobiles or the leading 0: \"379 4-123456\", \"+54 9 3794 123456\" and \"03794 123456\" are the same number. A number with the 15 or without 10 digits is invalid_whatsapp. Needs manage_customers and a business that is not read only.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "whatsapp": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                },
+                "required": [
+                  "name",
+                  "whatsapp"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request or invalid_whatsapp: the body is not valid, or the WhatsApp has no 10 digits.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage customers) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or customer_not_found: the user has no active membership in the business, or the business has no customer with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "whatsapp_taken: another customer of the business has that WhatsApp number.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerConflict"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List the customers of the business",
+        "description": "Ordered by normalized name. q matches the name, ignoring case (% and _ are literal), or, when it has digits, the digits of the WhatsApp. Keyset pagination: repeat the same URL with cursor=nextCursor and the same q. Needs manage_customers; allowed also when the business is read only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and this q.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected or forbidden: the session has no business yet, or the role cannot manage customers.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found: the user has no active membership in the business of the session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/customers/{id}": {
+      "patch": {
+        "summary": "Edit a customer",
+        "description": "Only the keys sent change. The same WhatsApp rules as the creation apply; the customer itself does not clash with its own number. Needs manage_customers and a business that is not read only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "whatsapp": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The customer.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Customer"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request or invalid_whatsapp: the body or the id is not valid, or the WhatsApp has no 10 digits.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage customers) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or customer_not_found: the user has no active membership in the business, or the business has no customer with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "whatsapp_taken: another customer of the business has that WhatsApp number.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerConflict"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/availability": {
+      "get": {
+        "summary": "Check what is free for a period",
+        "description": "The active items of the business, ordered by normalized name, with their availability in [from, to). from and to are required ISO 8601 instants with an offset, for example 2026-11-13T08:00:00-03:00; to must be after from and at most 366 days after it. reserved is the most the item is booked at a single moment of the period, not the sum of the bookings; available = totalStock - outOfService - reserved and can be negative when an overdue pickup leaves the item overbooked. ids (up to 100, comma separated, no repeats), category and q filter like GET /items. Keyset pagination: repeat the same URL with cursor=nextCursor and the same period and filters. Allowed for every role and also when the business is read only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": true,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": true,
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "ids",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "required": false,
+            "name": "category",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request, invalid_period or invalid_cursor: a query parameter is not valid, to is not after from or is more than 366 days after it, or the cursor does not belong to this list, period and filters.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected: the session has no business yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found: the user has no active membership in the business of the session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings": {
+      "post": {
+        "summary": "Create a booking",
+        "description": "Born as a hold or confirmed, once per Idempotency-Key (a UUID, required): the same key with the same body returns the same booking, the same key with another body is 422 idempotency_key_reused, and a key is good for 72 hours. A hold needs holdExpiresAt, after now and not after deliveryAt; a confirmed booking must not have one. deliveryAt may be in the past (it is already out), pickupAt must be after deliveryAt and after now. Each line fixes its price: priceCents if sent, else the item list price at this moment. freightCents is 0 by default and deposit is optional. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices (the roles that create always see prices).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A UUID the client generates once per operation and repeats on retries."
+            },
+            "required": true,
+            "description": "A UUID the client generates once per operation and repeats on retries.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "hold",
+                      "confirmed"
+                    ]
+                  },
+                  "customerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deliveryAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "pickupAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "holdExpiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "address": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "freightCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000000000,
+                    "default": 0
+                  },
+                  "deposit": {
+                    "type": "object",
+                    "properties": {
+                      "amountCents": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000000000
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date"
+                      }
+                    },
+                    "required": [
+                      "amountCents",
+                      "date"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "itemId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100000
+                        },
+                        "priceCents": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 10000000000
+                        }
+                      },
+                      "required": [
+                        "itemId",
+                        "quantity"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "required": [
+                  "status",
+                  "customerId",
+                  "deliveryAt",
+                  "pickupAt",
+                  "lines"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request, invalid_period, pickup_in_past, invalid_hold_expiry or amount_too_large: the body or the header is not valid, the pickup is not after the delivery, the pickup is not in the future, the hold expiry is not after now and up to the delivery, or the total is above Number.MAX_SAFE_INTEGER.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found, customer_not_found or item_not_found: the user has no active membership in the business, or the business has no such customer or item.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "insufficient_stock (items: for each item short, what the line asks and what is free in the booking period without it) or item_archived (itemIds: the archived items the booking would take).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientStock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ItemArchived"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "idempotency_key_reused: the key was used with another request in the last 72 hours.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List the bookings of the business",
+        "description": "Ordered by delivery date and id, every status unless status is given. Keyset pagination: repeat the same URL with cursor=nextCursor and the same status. A hold past its expiry is listed with holdExpired true. Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 50
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048
+            },
+            "required": false,
+            "name": "cursor",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "hold",
+                "confirmed",
+                "delivered",
+                "returned",
+                "cancelled"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingPageWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BookingPage"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and this status.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected: the session has no business yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found: the user has no active membership in the business of the session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}": {
+      "get": {
+        "summary": "Read a booking",
+        "description": "Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The booking.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected: the session has no business yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Edit a booking",
+        "description": "Only the keys sent change, and sending what the booking already has changes nothing (200, nothing written); the values are absolute, so there is no Idempotency-Key. lines is the complete list by item: an item that is not in it is removed (its line is kept with removed_at), a new one takes priceCents or the list price of this moment, and one that stays keeps its price. address and note accept null to clear them. What can change depends on the status: a hold, everything; a confirmed booking, everything but holdExpiresAt and without changing the price of an existing line (line_price_locked); a delivered one, only pickupAt, address and note; a returned or cancelled one, nothing (booking_not_editable). The deposit is loaded once (deposit_already_set for another amount or date). pickupAt is compared with now only if it changes, and holdExpiresAt too (after now and not after deliveryAt). A change that makes an item hold more units, in other dates or quantities, or moves the expiry of an expired hold, is checked against the stock; one that does not raise the occupation is accepted even if an overdue booking already exceeds the stock. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "deliveryAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "pickupAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "holdExpiresAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 300
+                  },
+                  "note": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "freightCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000000000
+                  },
+                  "deposit": {
+                    "type": "object",
+                    "properties": {
+                      "amountCents": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 10000000000
+                      },
+                      "date": {
+                        "type": "string",
+                        "format": "date"
+                      }
+                    },
+                    "required": [
+                      "amountCents",
+                      "date"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "lines": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "itemId": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 100000
+                        },
+                        "priceCents": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 10000000000
+                        }
+                      },
+                      "required": [
+                        "itemId",
+                        "quantity"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 100
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The booking after the edit.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request, invalid_period, pickup_in_past, invalid_hold_expiry or amount_too_large: the body or the id is not valid (an empty body included), the pickup is not after the delivery, the changed pickup is not in the future, the hold expiry is not after now and up to the delivery, or the total is above Number.MAX_SAFE_INTEGER.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found, booking_not_found, customer_not_found or item_not_found: the user has no active membership in the business, or the business has no such booking, customer or item.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "booking_not_editable, line_price_locked or deposit_already_set; insufficient_stock (items: for each item short, what the line asks and what is free in the booking period without it) or item_archived (itemIds: the archived items the booking would take).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientStock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ItemArchived"
+                    },
+                    {
+                      "$ref": "#/components/schemas/BookingConflict"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/confirm": {
+      "post": {
+        "summary": "Confirm a booking",
+        "description": "Moves a hold to confirmed and clears holdExpiresAt, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. Only a hold can be confirmed. Confirming an expired hold takes the stock again, so it is checked like a new booking: insufficient_stock or item_archived if it no longer fits, and pickup_in_past if its pickup is not after now. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A UUID the client generates once per operation and repeats on retries."
+            },
+            "required": true,
+            "description": "A UUID the client generates once per operation and repeats on retries.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The booking after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientStock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ItemArchived"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidTransition"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "idempotency_key_reused: the key was used with another request in the last 72 hours.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/deliver": {
+      "post": {
+        "summary": "Record the delivery of a booking",
+        "description": "Moves a confirmed booking to delivered and sets deliveredAt to now, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. It records a fact, so it does not check the stock: a delivery ahead of schedule holds the units from that instant. Needs record_delivery_and_return (crew too) and a business that is not read only. Answers Booking for roles without view_prices and BookingWithPrices for the rest.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A UUID the client generates once per operation and repeats on retries."
+            },
+            "required": true,
+            "description": "A UUID the client generates once per operation and repeats on retries.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The booking after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientStock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ItemArchived"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidTransition"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "idempotency_key_reused: the key was used with another request in the last 72 hours.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/return": {
+      "post": {
+        "summary": "Record the return of a booking",
+        "description": "Moves a delivered booking to returned and sets returnRecordedAt to now, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. The units are free from that instant. Needs record_delivery_and_return (crew too) and a business that is not read only. Answers Booking for roles without view_prices and BookingWithPrices for the rest.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A UUID the client generates once per operation and repeats on retries."
+            },
+            "required": true,
+            "description": "A UUID the client generates once per operation and repeats on retries.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The booking after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientStock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ItemArchived"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidTransition"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "idempotency_key_reused: the key was used with another request in the last 72 hours.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/cancel": {
+      "post": {
+        "summary": "Cancel a booking",
+        "description": "Moves a hold or a confirmed booking to cancelled, sets cancelledAt to now and clears holdExpiresAt, once per Idempotency-Key (a UUID, required; a repeat answers 200 with the booking as it is now, projected for the caller). The body is empty or {}. A delivered booking is not cancelled. The units are free at once and the deposit stays as it was. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "A UUID the client generates once per operation and repeats on retries."
+            },
+            "required": true,
+            "description": "A UUID the client generates once per operation and repeats on retries.",
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The booking after the change.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/BookingWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/Booking"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID, the Idempotency-Key header is missing or is not a UUID, or the body is not empty or {}; or, only when confirming, pickup_in_past: the pickup of the booking is not after now (an expired hold), and nothing changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage bookings) or read_only (the subscription is not live).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "invalid_transition: the status of the booking does not allow it, and nothing changes; or, only when confirming, insufficient_stock (items: for each item short, what the line asks and what is free in the booking period) or item_archived (itemIds: the archived items the booking would take again).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/InsufficientStock"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ItemArchived"
+                    },
+                    {
+                      "$ref": "#/components/schemas/InvalidTransition"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "idempotency_key_reused: the key was used with another request in the last 72 hours.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
