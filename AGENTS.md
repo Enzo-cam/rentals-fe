@@ -34,7 +34,7 @@ Lo que hay hoy (la estructura objetivo completa está en `docs/architecture.md` 
 
 ```text
 src/
-├── proxy.ts                    guardia optimista de /cuenta, /elegir-negocio, /articulos y /clientes (y lo que cuelga): sin cookie, 307 a /ingresar
+├── proxy.ts                    guardia optimista de /cuenta, /elegir-negocio, /articulos, /clientes, /disponibilidad y /reservas (y lo que cuelga): sin cookie, 307 a /ingresar
 ├── app/
 │   ├── layout.tsx              <html lang="es-AR">, metadata base
 │   ├── (publico)/page.tsx      "/": estado de la API (Server Component, noindex)
@@ -46,11 +46,20 @@ src/
 │   │                           espacio para que no tape el final
 │   │   ├── cuenta/             quién soy, negocio, rol y salir
 │   │   ├── articulos/          lista y búsqueda; nuevo/, [id]/ (detalle), [id]/editar/ y cargar-lista/
-│   │   └── clientes/           lista con búsqueda y "Ver más"; alta y edición en una hoja sobre la lista
+│   │   ├── clientes/           lista con búsqueda y "Ver más"; alta y edición en una hoja sobre la lista
+│   │   ├── disponibilidad/     período (desde, hasta) y búsqueda en la URL; qué hay libre por artículo
+│   │   └── reservas/           lista con el estado en la URL y "Ver más"; [id]/ (detalle, solo lectura)
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
-│   ├── bookings/               base de las reservas: BookingStatusBadge (estado en píldora) y BookingRefList (la lista
-│   │                           de reservas que nombra un 409); se importa solo por index.ts
+│   ├── availability/           disponibilidad: período y búsqueda en la URL, lista con "Ver más" (se importa solo por index.ts):
+│   │   ├── api/                keys, requests (GET /availability) y filtros de la URL (fechas locales, sin offset)
+│   │   ├── hooks/              use-availability (pide solo con el período completo, staleTime 0)
+│   │   └── components/         pantalla, formulario del período, fila, textos
+│   ├── bookings/               reservas, solo lectura: lista con filtro de estado, detalle, BookingStatusBadge (estado
+│   │   │                       en píldora) y BookingRefList (la lista de reservas que nombra un 409); se importa solo por index.ts
+│   │   ├── api/                keys, requests (GET /bookings y /bookings/{id}), filtro de estado de la URL y falla "no existe"
+│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0
+│   │   └── components/         pantalla, filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API), textos
 │   ├── customers/              clientes: lista, búsqueda, alta y edición en una hoja (se importa solo por index.ts):
 │   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas (409 y 400) y acceso por rol
 │   │   ├── hooks/              use-customers, use-create-customer, use-update-customer y use-customer-access
@@ -66,7 +75,7 @@ src/
 │       ├── hooks/              use-sign-in, use-define-password, use-my-businesses, use-select-business, use-me,
 │       │                       use-sign-out y la lectura del token del fragmento
 │       └── components/         formularios y pantallas, textos, SessionProviders (QueryClient del navegador) y
-│                           AppNavigation (la barra de abajo: Artículos, Clientes, Cuenta)
+│                           AppNavigation (la barra de abajo: Artículos, Clientes, Reservas, Cuenta; Reservas también marca /disponibilidad)
 ├── api/
 │   ├── openapi.json            contrato copiado de rentals-be (openapi.source.json dice de qué commit)
 │   ├── schema.d.ts             tipos generados: no se editan
@@ -86,7 +95,7 @@ src/
                                 lista, sin repetir); format/ (money, whole-number y date-time: único lugar que da
                                 formato y lee plata, enteros y fechas); effects/ llega con su primer uso
 e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local: fake-session-api,
-                                fake-items-api y fake-customers-api, con sus fixtures)
+                                fake-items-api, fake-customers-api, fake-availability-api y fake-bookings-api, con sus fixtures)
 scripts/                        api-sync, api-check, check-client-env
 ```
 

@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
 
+import { BOOKING_IDS } from "../support/bookings";
 import { overrideNext, resetFakeApi } from "../support/fake-api-control";
 import { copa, openItemsScreen, pageOf } from "../support/items";
 import { expectPrivatePage } from "../support/private-page";
@@ -31,6 +32,7 @@ test("Ana signs in and lands on the items, and moves between the items and her a
   await expect(nav.getByRole("link")).toHaveText([
     "Artículos",
     "Clientes",
+    "Reservas",
     "Cuenta",
   ]);
   await expect(nav.getByRole("link", { name: "Artículos" })).toHaveAttribute(
@@ -76,8 +78,40 @@ test("Beto, who is crew, has no Clientes in the navigation", async ({
   await openItemsScreen(page, "/articulos");
   await expect(sections(page).getByRole("link")).toHaveText([
     "Artículos",
+    "Reservas",
     "Cuenta",
   ]);
+});
+
+/** AC-13 */
+test("Reservas is the current section in the list, in a detail and in the availability, and Artículos is not", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.ana.email, USERS.ana.password);
+  for (const path of [
+    "/reservas",
+    `/reservas/${BOOKING_IDS.lucia}`,
+    "/disponibilidad",
+  ]) {
+    await openItemsScreen(page, path);
+    await expect(
+      sections(page).getByRole("link", { name: "Reservas" }),
+    ).toHaveAttribute("aria-current", "page");
+    await expect(
+      sections(page).getByRole("link", { name: "Artículos" }),
+    ).not.toHaveAttribute("aria-current", "page");
+  }
+});
+
+/** AC-13 */
+test("Reservas in the navigation goes to the list of bookings", async ({
+  page,
+}) => {
+  await signInThroughProxy(page, USERS.ana.email, USERS.ana.password);
+  await openItemsScreen(page, "/articulos");
+  await sections(page).getByRole("link", { name: "Reservas" }).click();
+  await page.waitForURL("**/reservas");
+  await expect(page.getByRole("heading", { name: "Reservas" })).toBeVisible();
 });
 
 /** AC-4 */

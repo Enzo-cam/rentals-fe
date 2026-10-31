@@ -1,4 +1,5 @@
 import { formatDateTime } from "@/lib/format/date-time";
+import { formatWholeNumber } from "@/lib/format/whole-number";
 
 import type { BookingRef } from "../types";
 import { BookingStatusBadge } from "./booking-status-badge";
@@ -25,7 +26,7 @@ export function BookingRefList({
           >
             <div className="flex items-start justify-between gap-3">
               <span className="min-w-0 break-words font-medium">
-                {booking.customerName} · {booking.quantity}
+                {booking.customerName} · {formatWholeNumber(booking.quantity)}
               </span>
               <BookingStatusBadge status={booking.status} />
             </div>

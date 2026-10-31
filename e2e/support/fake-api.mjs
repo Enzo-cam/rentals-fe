@@ -1,5 +1,10 @@
 import { createServer } from "node:http";
 
+import {
+  createAvailabilityApi,
+  isAvailabilityPath,
+} from "./fake-availability-api.mjs";
+import { createBookingsApi, isBookingsPath } from "./fake-bookings-api.mjs";
 import { createCustomersApi, isCustomersPath } from "./fake-customers-api.mjs";
 import { createItemsApi, isItemsPath } from "./fake-items-api.mjs";
 import { SESSION_PATHS, createSessionApi } from "./fake-session-api.mjs";
@@ -20,6 +25,14 @@ const itemsApi = createItemsApi({
 const customersApi = createCustomersApi({
   accessOf: sessionApi.accessOf,
   frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
+});
+
+const availabilityApi = createAvailabilityApi({
+  accessOf: sessionApi.accessOf,
+});
+
+const bookingsApi = createBookingsApi({
+  accessOf: sessionApi.accessOf,
 });
 
 let healthMode = "ok";
@@ -162,6 +175,10 @@ const server = createServer(async (req, res) => {
   if (isCustomersPath(path)) {
     return viaApi(customersApi, req, res, path, url);
   }
+  if (isAvailabilityPath(path)) {
+    return viaApi(availabilityApi, req, res, path, url);
+  }
+  if (isBookingsPath(path)) return viaApi(bookingsApi, req, res, path, url);
 
   if (path.startsWith("/echo")) {
     const bodyLength = await readBody(req);

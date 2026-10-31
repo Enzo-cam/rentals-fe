@@ -21,6 +21,7 @@ export const NAVIGATION_TEXTS = {
   label: "Secciones",
   items: "Artículos",
   customers: "Clientes",
+  bookings: "Reservas",
   account: "Cuenta",
 };
 
