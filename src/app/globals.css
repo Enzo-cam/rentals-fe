@@ -24,6 +24,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-highlight-foreground: var(--highlight-foreground);
+  --color-highlight: var(--highlight);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -33,47 +35,56 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/*
+ * La paleta del press kit (docs/brand.md): bosque #10291F, hueso #F1E9D8 y mostaza #F2B33D, más sus dos superficies,
+ * bosque 2 #1A3B2E y hueso 2 #E3D8C2. Las pantallas usan estos nombres semánticos (bg-background, text-muted-foreground,
+ * bg-highlight…) y nunca un color suelto.
+ */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  --background: #f1e9d8;
+  --foreground: #10291f;
+  --card: #e3d8c2;
+  --card-foreground: #10291f;
+  --popover: #e3d8c2;
+  --popover-foreground: #10291f;
+  --primary: #10291f;
+  --primary-foreground: #f1e9d8;
+  --secondary: #e3d8c2;
+  --secondary-foreground: #10291f;
+  --muted: #e3d8c2;
+  --muted-foreground: #3e5248;
+  --accent: #e3d8c2;
+  --accent-foreground: #10291f;
+  --highlight: #f2b33d;
+  --highlight-foreground: #10291f;
+  --destructive: oklch(0.52 0.2 27);
+  --border: #10291f26;
+  --input: #10291f40;
+  --ring: #10291f;
+  --radius: 1.25rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --background: #10291f;
+  --foreground: #f1e9d8;
+  --card: #1a3b2e;
+  --card-foreground: #f1e9d8;
+  --popover: #1a3b2e;
+  --popover-foreground: #f1e9d8;
+  --primary: #f2b33d;
+  --primary-foreground: #10291f;
+  --secondary: #1a3b2e;
+  --secondary-foreground: #f1e9d8;
+  --muted: #1a3b2e;
+  --muted-foreground: #b9c4bb;
+  --accent: #1a3b2e;
+  --accent-foreground: #f1e9d8;
+  --highlight: #f2b33d;
+  --highlight-foreground: #10291f;
+  --destructive: oklch(0.72 0.17 25);
+  --border: #f1e9d826;
+  --input: #f1e9d840;
+  --ring: #f2b33d;
 }
 
 @layer base {
@@ -82,8 +93,16 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-variant-numeric: tabular-nums;
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-semibold;
+    letter-spacing: -0.03em;
+    line-height: 1.05;
   }
 }
