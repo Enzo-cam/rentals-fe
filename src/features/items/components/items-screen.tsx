@@ -32,27 +32,19 @@ export function ItemsScreen({ filters }: { filters: ItemFilters }) {
   return (
     <div className="flex flex-col gap-4">
       {access.readOnly && <ReadOnlyNotice />}
-      <div className="flex flex-wrap gap-2">
-        {access.canManage && (
+      {access.canManage && (
+        <div className="flex flex-wrap gap-2">
           <Link href={ROUTES.newItem} className={buttonVariants()}>
             {ITEMS_TEXTS.newItem}
           </Link>
-        )}
-        {access.canManage && (
           <Link
             href={ROUTES.importItems}
             className={buttonVariants({ variant: "outline" })}
           >
             {ITEMS_TEXTS.importList}
           </Link>
-        )}
-        <Link
-          href={ROUTES.account}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          {ITEMS_TEXTS.account}
-        </Link>
-      </div>
+        </div>
+      )}
       <ItemFilterBar filters={filters} />
       {rows.length > 0 && (
         <ul className="flex flex-col gap-2">

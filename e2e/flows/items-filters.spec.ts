@@ -68,7 +68,9 @@ test("a URL with a status that does not exist and an empty q asks for the active
   request,
 }) => {
   await openItemsScreen(page, "/articulos?status=borrados&q=");
-  await expect(page.getByRole("listitem").first()).toBeVisible();
+  await expect(
+    page.getByRole("main").getByRole("listitem").first(),
+  ).toBeVisible();
   const query = await lastItemsQuery(request);
   expect(query.get("status")).toBe("active");
   expect(query.has("q")).toBe(false);
@@ -194,7 +196,7 @@ test("when the categories fail the list is used anyway and the filter says so", 
     body: { error: "upstream_unavailable" },
   });
   await openItemsScreen(page, "/articulos");
-  await expect(page.getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
   await expect(
     page.getByText("No pudimos traer las categorías."),
   ).toBeVisible();

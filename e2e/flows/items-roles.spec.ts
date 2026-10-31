@@ -35,7 +35,9 @@ test("Beto, who is crew, sees the items without prices and without buttons that 
   });
   await openItemsScreen(page, "/articulos");
   await expect(page.getByText(SILLA)).toBeVisible();
-  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Cuenta", exact: true }),
+  ).toBeVisible();
   await expect(page.locator("main")).not.toContainText("$");
   await expect(page.getByRole("link", { name: "Nuevo artículo" })).toHaveCount(
     0,
@@ -49,7 +51,9 @@ test("Marta, who is manager, sees the prices and Nuevo artículo", async ({
 }) => {
   await signInThroughProxy(page, USERS.marta.email, USERS.marta.password);
   await openItemsScreen(page, "/articulos");
-  await expect(page.getByRole("listitem").first()).toContainText("$ 1.500");
+  await expect(
+    page.getByRole("main").getByRole("listitem").first(),
+  ).toContainText("$ 1.500");
   await expect(page.getByRole("link", { name: "Cargar lista" })).toBeVisible();
   await expect(
     page.getByRole("link", { name: "Nuevo artículo" }),
@@ -119,7 +123,9 @@ test("Beto, who opens /articulos/nuevo by URL, ends on /articulos and nothing is
   await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
   await page.goto("/articulos/nuevo");
   await page.waitForURL(/\/articulos$/);
-  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Cuenta", exact: true }),
+  ).toBeVisible();
   const writes = (await apiRequests(request)).filter(
     (call) =>
       call.path.startsWith("/items") &&
@@ -146,7 +152,9 @@ test("Beto, who opens an edit page by URL, ends on /articulos and nothing is sen
   await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
   await page.goto(`/articulos/${ITEM_IDS.silla}/editar`);
   await page.waitForURL(/\/articulos$/);
-  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Cuenta", exact: true }),
+  ).toBeVisible();
   const writes = (await apiRequests(request)).filter(
     (call) =>
       call.path.startsWith("/items") &&
@@ -173,7 +181,9 @@ test("Beto, who opens /articulos/cargar-lista by URL, ends on /articulos and not
   await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
   await page.goto("/articulos/cargar-lista");
   await page.waitForURL(/\/articulos$/);
-  await expect(page.getByRole("link", { name: "Tu cuenta" })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "Cuenta", exact: true }),
+  ).toBeVisible();
   const writes = (await apiRequests(request)).filter(
     (call) => call.path.startsWith("/items") && call.method === "POST",
   );

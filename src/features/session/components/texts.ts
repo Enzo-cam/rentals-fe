@@ -15,7 +15,13 @@ export const ACCOUNT_TEXTS = {
   loading: "Cargando tu cuenta…",
   businessGone: "Ya no tenés acceso a este negocio.",
   signOutFailed: "No pudimos cerrar la sesión. Probá de nuevo.",
+};
+
+export const NAVIGATION_TEXTS = {
+  label: "Secciones",
   items: "Artículos",
+  customers: "Clientes",
+  account: "Cuenta",
 };
 
 export const READ_ONLY_NOTICE =

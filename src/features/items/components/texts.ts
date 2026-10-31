@@ -3,7 +3,6 @@ export const ITEMS_TEXTS = {
   empty: "Todavía no cargaste artículos.",
   newItem: "Nuevo artículo",
   importList: "Cargar lista",
-  account: "Tu cuenta",
   more: "Ver más",
   retry: "Reintentar",
   archived: "Dado de baja",
