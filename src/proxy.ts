@@ -16,7 +16,7 @@ export function proxy(request: NextRequest) {
 /**
  * Literal and narrow on purpose: Next reads it statically, and a mistake here must not reach `/`, `/api` or `_next`.
  * The items are guarded at `/articulos` and under it, the customers at `/clientes` and under it, and the availability
- * at `/disponibilidad`.
+ * at `/disponibilidad`, and the bookings at `/reservas` and under it.
  */
 export const config = {
   matcher: [
@@ -27,5 +27,7 @@ export const config = {
     "/clientes",
     "/clientes/:path*",
     "/disponibilidad",
+    "/reservas",
+    "/reservas/:path*",
   ],
 };

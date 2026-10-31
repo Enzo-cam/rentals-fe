@@ -1,6 +1,12 @@
 "use client";
 
-import { Package, UserRound, Users, type LucideIcon } from "lucide-react";
+import {
+  CalendarDays,
+  Package,
+  UserRound,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -11,29 +17,50 @@ import { NAVIGATION_TEXTS } from "./texts";
 
 type Section = {
   href: string;
+  paths: string[];
   label: string;
   icon: LucideIcon;
   hiddenForCrew?: boolean;
 };
 
 const SECTIONS: Section[] = [
-  { href: ROUTES.items, label: NAVIGATION_TEXTS.items, icon: Package },
+  {
+    href: ROUTES.items,
+    paths: [ROUTES.items],
+    label: NAVIGATION_TEXTS.items,
+    icon: Package,
+  },
   {
     href: ROUTES.customers,
+    paths: [ROUTES.customers],
     label: NAVIGATION_TEXTS.customers,
     icon: Users,
     hiddenForCrew: true,
   },
-  { href: ROUTES.account, label: NAVIGATION_TEXTS.account, icon: UserRound },
+  {
+    href: ROUTES.bookings,
+    paths: [ROUTES.bookings, ROUTES.availability],
+    label: NAVIGATION_TEXTS.bookings,
+    icon: CalendarDays,
+  },
+  {
+    href: ROUTES.account,
+    paths: [ROUTES.account],
+    label: NAVIGATION_TEXTS.account,
+    icon: UserRound,
+  },
 ];
 
-function isCurrent(pathname: string, href: string): boolean {
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isCurrent(pathname: string, paths: string[]): boolean {
+  return paths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
 }
 
 /**
- * The sections of the app, fixed to the bottom of the screen where the thumb is. The crew does not get Clientes
- * because the API answers 403 to them on the customers; until `GET /me` answers, it is shown. Whoever uses it
+ * The sections of the app, fixed to the bottom of the screen where the thumb is. A section is current in each of its
+ * `paths` and under them: Reservas also covers the availability, which is how a booking starts. The crew does not get
+ * Clientes because the API answers 403 to them on the customers; until `GET /me` answers, it is shown. Whoever uses it
  * leaves room for it with `pb-16`, the height of the bar.
  */
 export function AppNavigation() {
@@ -48,8 +75,8 @@ export function AppNavigation() {
     >
       <ul className="mx-auto flex h-full max-w-md items-center gap-1 px-2">
         {SECTIONS.filter((section) => !(isCrew && section.hiddenForCrew)).map(
-          ({ href, label, icon: Icon }) => {
-            const current = isCurrent(pathname, href);
+          ({ href, paths, label, icon: Icon }) => {
+            const current = isCurrent(pathname, paths);
             return (
               <li key={href} className="flex-1">
                 <Link
