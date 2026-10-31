@@ -89,7 +89,9 @@ test("Ana creates an item: exact body, JSON, lands on the detail and the list is
   const before = (await calls(request, "GET", "/items")).length;
   await page.getByRole("link", { name: "Volver a los artículos" }).click();
   await page.waitForURL("**/articulos");
-  await expect(page.getByRole("listitem").first()).toBeVisible();
+  await expect(
+    page.getByRole("main").getByRole("listitem").first(),
+  ).toBeVisible();
   await expect
     .poll(async () => (await calls(request, "GET", "/items")).length)
     .toBe(before + 1);
@@ -277,7 +279,9 @@ test("Marta, whose role changed to crew, is sent back to /articulos after a 403"
 }) => {
   await signInThroughProxy(page, USERS.marta.email, USERS.marta.password);
   await openItemsScreen(page, "/articulos");
-  await expect(page.getByRole("listitem").first()).toContainText("$ 1.500");
+  await expect(
+    page.getByRole("main").getByRole("listitem").first(),
+  ).toContainText("$ 1.500");
   await page.getByRole("link", { name: "Nuevo artículo" }).click();
   await page.waitForURL(/\/articulos\/nuevo$/);
   await fillForm(page);

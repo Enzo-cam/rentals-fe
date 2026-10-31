@@ -34,7 +34,7 @@ Lo que hay hoy (la estructura objetivo completa está en `docs/architecture.md` 
 
 ```text
 src/
-├── proxy.ts                    guardia optimista de /cuenta, /elegir-negocio y /articulos (y lo que cuelga): sin cookie, 307 a /ingresar
+├── proxy.ts                    guardia optimista de /cuenta, /elegir-negocio, /articulos y /clientes (y lo que cuelga): sin cookie, 307 a /ingresar
 ├── app/
 │   ├── layout.tsx              <html lang="es-AR">, metadata base
 │   ├── (publico)/page.tsx      "/": estado de la API (Server Component, noindex)
@@ -42,10 +42,19 @@ src/
 │   ├── (app)/ingresar/         entrar con email y contraseña
 │   ├── (app)/definir-contrasena/  definir la contraseña con el link de WhatsApp (el token va en el fragmento)
 │   ├── (app)/elegir-negocio/   elegir negocio si el usuario tiene varios
-│   ├── (app)/cuenta/           quién soy, negocio, rol y salir
-│   ├── (app)/articulos/        lista y búsqueda; nuevo/, [id]/ (detalle), [id]/editar/ y cargar-lista/
+│   ├── (app)/(negocio)/        pantallas con sesión y negocio: layout.tsx pone la barra de abajo (AppNavigation) y el
+│   │                           espacio para que no tape el final
+│   │   ├── cuenta/             quién soy, negocio, rol y salir
+│   │   ├── articulos/          lista y búsqueda; nuevo/, [id]/ (detalle), [id]/editar/ y cargar-lista/
+│   │   └── clientes/           lista con búsqueda y "Ver más"; alta y edición en una hoja sobre la lista
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
+│   ├── bookings/               base de las reservas: BookingStatusBadge (estado en píldora) y BookingRefList (la lista
+│   │                           de reservas que nombra un 409); se importa solo por index.ts
+│   ├── customers/              clientes: lista, búsqueda, alta y edición en una hoja (se importa solo por index.ts):
+│   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas (409 y 400) y acceso por rol
+│   │   ├── hooks/              use-customers, use-create-customer, use-update-customer y use-customer-access
+│   │   └── components/         pantalla, fila, búsqueda, hoja, formulario, textos y la guardia CustomersGate
 │   ├── health/                 llamada a GET /health y su tarjeta de estado
 │   ├── items/                  artículos: lista, detalle, alta, edición, baja y carga por lista (se importa solo por index.ts):
 │   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas y acceso por rol
@@ -56,7 +65,8 @@ src/
 │       ├── api/                keys, requests (login, contraseña, negocios, /me, logout) y destino al entrar
 │       ├── hooks/              use-sign-in, use-define-password, use-my-businesses, use-select-business, use-me,
 │       │                       use-sign-out y la lectura del token del fragmento
-│       └── components/         formularios y pantallas, textos y SessionProviders (QueryClient del navegador)
+│       └── components/         formularios y pantallas, textos, SessionProviders (QueryClient del navegador) y
+│                           AppNavigation (la barra de abajo: Artículos, Clientes, Cuenta)
 ├── api/
 │   ├── openapi.json            contrato copiado de rentals-be (openapi.source.json dice de qué commit)
 │   ├── schema.d.ts             tipos generados: no se editan
@@ -65,15 +75,18 @@ src/
 │   ├── api-failure.ts          errores de la API: ApiFailure, ApiError, unwrap, Retry-After
 │   ├── failure-message.ts      textos genéricos de cada falla
 │   ├── query-client.ts         QueryClient: un reintento solo por red o 5xx, mutaciones sin reintento
+│   ├── idempotency.ts          createIdempotencyKeys: cuándo se reutiliza la Idempotency-Key y cuándo se pide otra
+│   ├── use-idempotent-mutation.ts  useMutation que recibe la Idempotency-Key de la acción
 │   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
 │   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
 │   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
-├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog) con la forma de la marca, y BrandMark
+├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog, badge, select, sheet, textarea) con la forma de la marca, y BrandMark
                                 (la marca como SVG, docs/brand.md)
-└── lib/                        routes.ts (rutas y destino al entrar); format/ (money y whole-number: único lugar
-                                que da formato y lee plata y enteros); effects/ llega con su primer uso
-e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local: fake-session-api y
-                                fake-items-api, con sus fixtures)
+└── lib/                        routes.ts (rutas y destino al entrar); pages.ts (las entradas de las páginas de una
+                                lista, sin repetir); format/ (money, whole-number y date-time: único lugar que da
+                                formato y lee plata, enteros y fechas); effects/ llega con su primer uso
+e2e/                            Playwright: flows/, pages/, proxy/ y support/ (API falsa local: fake-session-api,
+                                fake-items-api y fake-customers-api, con sus fixtures)
 scripts/                        api-sync, api-check, check-client-env
 ```
 

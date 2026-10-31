@@ -13,8 +13,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { BookingRefList } from "@/features/bookings";
 
-import { isItemMissing } from "../api/failures";
+import { isItemMissing, itemHasBookingsOf } from "../api/failures";
 import { useSetItemArchived } from "../hooks/use-set-item-archived";
 import { ARCHIVE_TEXTS, DETAIL_TEXTS } from "./texts";
 
@@ -34,6 +35,7 @@ export function ArchiveActions({
 }) {
   const [open, setOpen] = useState(false);
   const setArchived = useSetItemArchived(id);
+  const hasBookings = itemHasBookingsOf(setArchived.error);
 
   return (
     <div className="flex flex-col gap-2">
@@ -54,7 +56,16 @@ export function ArchiveActions({
           {ARCHIVE_TEXTS.archive}
         </Button>
       )}
-      {setArchived.isError && (
+      {hasBookings && (
+        <div role="alert" className="flex flex-col gap-2">
+          <p className="text-destructive">{ARCHIVE_TEXTS.hasBookings}</p>
+          <BookingRefList
+            bookings={hasBookings.bookings}
+            hasMore={hasBookings.hasMore}
+          />
+        </div>
+      )}
+      {setArchived.isError && !hasBookings && (
         <p role="alert">
           {isItemMissing(setArchived.error)
             ? DETAIL_TEXTS.missing

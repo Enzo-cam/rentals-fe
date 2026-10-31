@@ -92,3 +92,85 @@ export function rejectedPreviewOf(error: unknown): ImportPreview | null {
   if (!isObject(body) || !("preview" in body)) return null;
   return isImportPreview(body.preview) ? body.preview : null;
 }
+
+type BookingRef = components["schemas"]["BookingRef"];
+
+const BOOKING_STATUSES: readonly string[] = [
+  "hold",
+  "confirmed",
+  "delivered",
+  "returned",
+  "cancelled",
+] satisfies BookingRef["status"][];
+
+function isBookingRef(value: unknown): value is BookingRef {
+  return (
+    isObject(value) &&
+    "id" in value &&
+    typeof value.id === "string" &&
+    "status" in value &&
+    typeof value.status === "string" &&
+    BOOKING_STATUSES.includes(value.status) &&
+    "deliveryAt" in value &&
+    typeof value.deliveryAt === "string" &&
+    "pickupAt" in value &&
+    typeof value.pickupAt === "string" &&
+    "quantity" in value &&
+    typeof value.quantity === "number" &&
+    "customerName" in value &&
+    typeof value.customerName === "string"
+  );
+}
+
+/** The bookings of a 409 that names them (`bookings` and `hasMore`) for the code given, or `null` if the body differs. */
+function bookingsConflictOf(
+  error: unknown,
+  code: string,
+): {
+  body: { bookings: BookingRef[]; hasMore: boolean };
+  raw: object;
+} | null {
+  const failure = failureOf(error);
+  if (
+    failure?.kind !== "rejected" ||
+    failure.status !== 409 ||
+    failure.code !== code
+  ) {
+    return null;
+  }
+  const raw = error instanceof ApiError ? error.body : undefined;
+  if (
+    !isObject(raw) ||
+    !("bookings" in raw) ||
+    !Array.isArray(raw.bookings) ||
+    !raw.bookings.every(isBookingRef) ||
+    !("hasMore" in raw) ||
+    typeof raw.hasMore !== "boolean"
+  ) {
+    return null;
+  }
+  return { body: { bookings: raw.bookings, hasMore: raw.hasMore }, raw };
+}
+
+/**
+ * A 409 `stock_below_reserved` says how many units are reserved at some moment, and which bookings hold them (the
+ * list may be cut: `hasMore`). `null` when the body does not have that shape, and the screen falls back to the generic
+ * text.
+ */
+export function stockBelowReservedOf(error: unknown): {
+  reserved: number;
+  bookings: BookingRef[];
+  hasMore: boolean;
+} | null {
+  const found = bookingsConflictOf(error, "stock_below_reserved");
+  if (!found || !("reserved" in found.raw)) return null;
+  if (typeof found.raw.reserved !== "number") return null;
+  return { reserved: found.raw.reserved, ...found.body };
+}
+
+/** A 409 `item_has_bookings` names the active bookings that stop the item from being archived. */
+export function itemHasBookingsOf(
+  error: unknown,
+): { bookings: BookingRef[]; hasMore: boolean } | null {
+  return bookingsConflictOf(error, "item_has_bookings")?.body ?? null;
+}

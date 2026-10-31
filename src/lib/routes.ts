@@ -8,6 +8,7 @@ export const ROUTES = {
   item: (id: string) => `/articulos/${id}`,
   editItem: (id: string) => `/articulos/${id}/editar`,
   importItems: "/articulos/cargar-lista",
+  customers: "/clientes",
 } as const;
 
 /** The screen a user lands on after signing in with a business selected. */

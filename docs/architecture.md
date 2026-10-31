@@ -23,6 +23,7 @@ src/
 │   ├── (publico)/              landing y páginas indexables: Server Components, sin React Query
 │   ├── p/[token]/              link de presupuesto: Server Component, noindex, Open Graph
 │   ├── (app)/                  aplicación del negocio: islas de cliente con React Query
+│   │   └── (negocio)/          pantallas con negocio activo: layout con la barra de abajo (AppNavigation)
 │   ├── (admin)/                backoffice (paso 9)
 │   ├── api/[...path]/          proxy BFF (ADR-0001)
 │   └── (dev)/gallery/          galería de stories para tests de componentes; 404 en producción
@@ -34,10 +35,12 @@ src/
 │       ├── types.ts            solo tipos de UI: valores de formulario, filtros, view models
 │       └── index.ts            API pública del feature: lo único que se importa desde afuera
 ├── api/                        cliente generado del OpenAPI, server.ts (solo servidor), QueryClient,
-│                               bff-proxy.ts, proxy-rules.ts y server-env.ts (el proxy y sus reglas)
+│                               bff-proxy.ts, proxy-rules.ts y server-env.ts (el proxy y sus reglas), e
+│                               idempotency.ts y use-idempotent-mutation.ts (`useIdempotentMutation`, §4)
 ├── components/ui/              shadcn/ui y piezas visuales sin dominio
 └── lib/
     ├── format/                 plata y fechas: un solo formateador de cada uno (INV-FE-05)
+    ├── pages.ts                entradas de las páginas de una lista por cursor, cada id una vez (`entriesOfPages`)
     └── effects/                los únicos hooks con useEffect del repo (§6)
 ```
 
@@ -92,8 +95,9 @@ Un Server Component de un feature pide datos con una función de `features/<f>/a
 3. **Disponibilidad y estados de reserva: `staleTime: 0` y sin actualizaciones optimistas.** El front espera la
    respuesta del backend, que es quien decide (INV-FE-01).
 4. **Mutaciones con efecto** (crear reserva, cambiar estado, registrar devolución) usan `useIdempotentMutation`.
-   Genera la `Idempotency-Key` al iniciar la acción y la reutiliza en cada reintento de esa misma acción
-   (ADR-0005 de `rentals-be`). Las mutaciones no se reintentan solas.
+   Genera la `Idempotency-Key` por intención de la persona (no por cuerpo) y la reutiliza en cada reintento de esa
+   misma acción hasta que una tenga éxito: cualquier falla la conserva, porque la API guarda la clave solo cuando el
+   efecto se hizo (ADR-0005 de `rentals-be`). Las mutaciones no se reintentan solas.
 5. **Invalidación explícita:** cada mutación declara qué keys invalida, en su propio hook.
 6. **Errores mapeados en un solo lugar** (`api/`):
    - `401` → al login.

@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 
+import { createCustomersApi, isCustomersPath } from "./fake-customers-api.mjs";
 import { createItemsApi, isItemsPath } from "./fake-items-api.mjs";
 import { SESSION_PATHS, createSessionApi } from "./fake-session-api.mjs";
 
@@ -12,6 +13,11 @@ const sessionApi = createSessionApi({
   frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
 });
 const itemsApi = createItemsApi({
+  accessOf: sessionApi.accessOf,
+  frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
+});
+
+const customersApi = createCustomersApi({
   accessOf: sessionApi.accessOf,
   frontOrigin: process.env.FRONT_ORIGIN ?? "http://localhost:3100",
 });
@@ -97,6 +103,7 @@ function control(req, res, path) {
     overrides = [];
     sessionApi.reset();
     itemsApi.reset();
+    customersApi.reset();
     return json(res, 200, { ok: true });
   }
   if (req.method === "POST" && path === "/__control/override") {
@@ -152,6 +159,9 @@ const server = createServer(async (req, res) => {
     return viaApi(sessionApi, req, res, path, url);
   }
   if (isItemsPath(path)) return viaApi(itemsApi, req, res, path, url);
+  if (isCustomersPath(path)) {
+    return viaApi(customersApi, req, res, path, url);
+  }
 
   if (path.startsWith("/echo")) {
     const bodyLength = await readBody(req);

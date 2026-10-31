@@ -12,6 +12,8 @@ const GUARDED = [
   `/articulos/${ITEM_ID}`,
   `/articulos/${ITEM_ID}/editar`,
   "/articulos/cargar-lista",
+  "/clientes",
+  "/clientes/nuevo",
 ];
 const UNGUARDED = ["/", "/ingresar", "/definir-contrasena"];
 

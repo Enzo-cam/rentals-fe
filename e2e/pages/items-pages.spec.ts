@@ -21,7 +21,7 @@ test("/articulos is Spanish, not indexable and fits in 360 px", async ({
 }) => {
   await signInThroughProxy(page, USERS.ana.email, USERS.ana.password);
   await openItemsScreen(page, "/articulos");
-  await page.getByRole("listitem").nth(2).waitFor();
+  await page.getByRole("main").getByRole("listitem").nth(2).waitFor();
   await expectPrivatePage(page);
 });
 

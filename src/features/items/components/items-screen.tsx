@@ -6,10 +6,10 @@ import { failureOf, isLeavingSession } from "@/api/api-failure";
 import { describeError } from "@/api/failure-message";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ReadOnlyNotice } from "@/features/session";
+import { entriesOfPages } from "@/lib/pages";
 import { ROUTES } from "@/lib/routes";
 
 import { itemsHref } from "../api/filters";
-import { itemsOfPages } from "../api/pages";
 import { useItemAccess } from "../hooks/use-item-access";
 import { useItems } from "../hooks/use-items";
 import type { ItemFilters } from "../types";
@@ -24,33 +24,27 @@ import { FILTER_TEXTS, ITEMS_TEXTS } from "./texts";
 export function ItemsScreen({ filters }: { filters: ItemFilters }) {
   const access = useItemAccess();
   const items = useItems(filters);
-  const rows = items.data ? itemsOfPages(items.data.pages) : [];
+  const rows = items.data
+    ? entriesOfPages(items.data.pages, (item) => item.id)
+    : [];
   const leaving = isLeavingSession(failureOf(items.error));
 
   return (
     <div className="flex flex-col gap-4">
       {access.readOnly && <ReadOnlyNotice />}
-      <div className="flex flex-wrap gap-2">
-        {access.canManage && (
+      {access.canManage && (
+        <div className="flex flex-wrap gap-2">
           <Link href={ROUTES.newItem} className={buttonVariants()}>
             {ITEMS_TEXTS.newItem}
           </Link>
-        )}
-        {access.canManage && (
           <Link
             href={ROUTES.importItems}
             className={buttonVariants({ variant: "outline" })}
           >
             {ITEMS_TEXTS.importList}
           </Link>
-        )}
-        <Link
-          href={ROUTES.account}
-          className={buttonVariants({ variant: "outline" })}
-        >
-          {ITEMS_TEXTS.account}
-        </Link>
-      </div>
+        </div>
+      )}
       <ItemFilterBar filters={filters} />
       {rows.length > 0 && (
         <ul className="flex flex-col gap-2">

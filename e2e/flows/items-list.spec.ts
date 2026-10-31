@@ -38,7 +38,7 @@ test("the list shows the active items in the order of the API, with the D3 row",
   request,
 }) => {
   await openItemsScreen(page, "/articulos");
-  const rows = page.getByRole("listitem");
+  const rows = page.getByRole("main").getByRole("listitem");
   await expect(rows).toHaveCount(3);
   await expect(rows.nth(0)).toContainText(SILLA);
   await expect(rows.nth(0)).toContainText("$ 1.500");
@@ -74,9 +74,9 @@ test("Ver más asks for the next cursor and the button goes away on the last pag
     body: pageOf([tablon], null),
   });
   await openItemsScreen(page, "/articulos");
-  await expect(page.getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
   await page.getByRole("button", { name: "Ver más" }).click();
-  await expect(page.getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
   await expect(page.getByRole("button", { name: "Ver más" })).toHaveCount(0);
 
   const calls = await itemCalls(request);
@@ -105,7 +105,7 @@ test("an item that the next page repeats shows once", async ({
   });
   await openItemsScreen(page, "/articulos");
   await page.getByRole("button", { name: "Ver más" }).click();
-  await expect(page.getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
   await expect(page.getByText(COPA)).toHaveCount(1);
 });
 
@@ -131,7 +131,7 @@ test("a failed next page keeps the rows, and Reintentar asks for the same cursor
   await openItemsScreen(page, "/articulos");
   await page.getByRole("button", { name: "Ver más" }).click();
   await expect(page.getByText(UNAVAILABLE)).toBeVisible();
-  await expect(page.getByRole("listitem")).toHaveCount(2);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(2);
 
   await overrideNext(request, {
     method: "GET",
@@ -141,7 +141,7 @@ test("a failed next page keeps the rows, and Reintentar asks for the same cursor
     body: pageOf([tablon], null),
   });
   await page.getByRole("button", { name: "Reintentar" }).click();
-  await expect(page.getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
   await expect(page.getByText(UNAVAILABLE)).toHaveCount(0);
 
   const calls = await itemCalls(request);
@@ -182,7 +182,7 @@ test("a 502 shows the text of the outage with Reintentar", async ({
   await openItemsScreen(page, "/articulos");
   await expect(page.getByText(UNAVAILABLE)).toBeVisible();
   await page.getByRole("button", { name: "Reintentar" }).click();
-  await expect(page.getByRole("listitem")).toHaveCount(3);
+  await expect(page.getByRole("main").getByRole("listitem")).toHaveCount(3);
 });
 
 /** AC-20 */

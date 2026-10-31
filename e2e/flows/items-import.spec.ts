@@ -57,7 +57,9 @@ async function previewOf(
   });
   if (viaList) {
     await openItemsScreen(page, "/articulos");
-    await expect(page.getByRole("listitem").first()).toBeVisible();
+    await expect(
+      page.getByRole("main").getByRole("listitem").first(),
+    ).toBeVisible();
     await page.getByRole("link", { name: "Cargar lista" }).click();
   } else {
     await openItemsScreen(page, "/articulos/cargar-lista");
@@ -79,7 +81,7 @@ test("the preview sends the text as it is and shows every row with its errors", 
     page.getByText("4 filas: 1 bien y 3 con errores."),
   ).toBeVisible();
 
-  const rows = page.getByRole("listitem");
+  const rows = page.getByRole("main").getByRole("listitem");
   await expect(rows.nth(0)).toContainText("Línea 2");
   await expect(rows.nth(0)).toContainText("Ya existe: «Silla Tiffany blanca».");
   await expect(rows.nth(0).getByRole("link", { name: "Ver" })).toHaveAttribute(
@@ -145,7 +147,7 @@ test("a 422 shows the marked rows from its body and no confirmation", async ({
   await expect(
     page.getByText("No se cargó nada: corregí las filas marcadas."),
   ).toBeVisible();
-  const second = page.getByRole("listitem").nth(1);
+  const second = page.getByRole("main").getByRole("listitem").nth(1);
   await expect(second).toContainText(`Ya existe: «${COPA}».`);
   await expect(second.getByRole("link", { name: "Ver" })).toHaveAttribute(
     "href",

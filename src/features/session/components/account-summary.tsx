@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { failureOf, isLeavingSession } from "@/api/api-failure";
 import { describeError } from "@/api/failure-message";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/lib/routes";
 
 import { useMe } from "../hooks/use-me";
@@ -57,12 +57,6 @@ export function AccountSummary() {
       ) : (
         <p role="status">{ACCOUNT_TEXTS.loading}</p>
       )}
-      <Link
-        href={ROUTES.items}
-        className={buttonVariants({ variant: "outline" })}
-      >
-        {ACCOUNT_TEXTS.items}
-      </Link>
       <SignOutButton signOut={signOut} />
     </div>
   );

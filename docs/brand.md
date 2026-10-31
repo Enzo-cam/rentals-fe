@@ -26,9 +26,17 @@ un hex, ni `bg-green-900`).
 - La acción principal es una **píldora bosque con texto hueso** sobre fondo claro. En modo oscuro, la acción principal
   pasa a mostaza con texto bosque. La mostaza sobre hueso no se usa para texto: no contrasta.
 - El error usa `--destructive`, un rojo cálido: el press kit no define uno.
-- Estados de una reserva (bloqueo, confirmada, entregada, devuelta, cancelada): el press kit no los define. Cuando se
-  diseñen las pantallas, se resuelven con bosque, hueso 2 y mostaza (una etiqueta con texto, nunca solo color) y se
-  anotan acá.
+- Estados de una reserva: el press kit no los define. Se resuelven con bosque, hueso 2 y mostaza, siempre como píldora
+  con texto (nunca solo color), en `BookingStatusBadge`:
+
+  | Estado | Texto | Estilo |
+  |---|---|---|
+  | Bloqueo | Bloqueo | Mostaza (`bg-highlight`, `text-highlight-foreground`) |
+  | Confirmada | Confirmada | Bosque (`bg-primary`, `text-primary-foreground`) |
+  | Entregada | Entregada | Borde bosque, fondo transparente, texto bosque |
+  | Devuelta | Devuelta | Hueso 2 (`bg-secondary`, `text-secondary-foreground`) |
+  | Cancelada | Cancelada | Hueso 2 |
+  | Bloqueo vencido (`holdExpired`) | Bloqueo vencido | Hueso 2 |
 
 ## Tipografía
 
