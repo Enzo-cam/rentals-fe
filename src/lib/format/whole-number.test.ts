@@ -1,6 +1,24 @@
 import { describe, expect, it } from "vitest";
 
-import { parseWholeNumber } from "./whole-number";
+import { formatWholeNumber, parseWholeNumber } from "./whole-number";
+
+describe("formatWholeNumber", () => {
+  it.each<[number, string]>([
+    [0, "0"],
+    [999, "999"],
+    [1200, "1.200"],
+    [1080, "1.080"],
+    [1234567, "1.234.567"],
+    [-2, "-2"],
+    [-1500, "-1.500"],
+  ])("must format %j", (value, text) => {
+    expect(formatWholeNumber(value)).toBe(text);
+  });
+
+  it("must give back what parseWholeNumber reads", () => {
+    expect(parseWholeNumber(formatWholeNumber(1234567), 2000000)).toBe(1234567);
+  });
+});
 
 describe("parseWholeNumber", () => {
   it.each<[string, number]>([
