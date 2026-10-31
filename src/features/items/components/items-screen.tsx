@@ -6,10 +6,10 @@ import { failureOf, isLeavingSession } from "@/api/api-failure";
 import { describeError } from "@/api/failure-message";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ReadOnlyNotice } from "@/features/session";
+import { entriesOfPages } from "@/lib/pages";
 import { ROUTES } from "@/lib/routes";
 
 import { itemsHref } from "../api/filters";
-import { itemsOfPages } from "../api/pages";
 import { useItemAccess } from "../hooks/use-item-access";
 import { useItems } from "../hooks/use-items";
 import type { ItemFilters } from "../types";
@@ -24,7 +24,9 @@ import { FILTER_TEXTS, ITEMS_TEXTS } from "./texts";
 export function ItemsScreen({ filters }: { filters: ItemFilters }) {
   const access = useItemAccess();
   const items = useItems(filters);
-  const rows = items.data ? itemsOfPages(items.data.pages) : [];
+  const rows = items.data
+    ? entriesOfPages(items.data.pages, (item) => item.id)
+    : [];
   const leaving = isLeavingSession(failureOf(items.error));
 
   return (
