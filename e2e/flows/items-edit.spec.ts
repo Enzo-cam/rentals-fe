@@ -9,6 +9,7 @@ import {
   COPA,
   ITEM_IDS,
   openItemsScreen,
+  reservedBookings,
   SILLA,
   silla,
 } from "../support/items";
@@ -107,6 +108,73 @@ test("a 400 out_of_service_exceeds_stock shows under Fuera de servicio and keeps
   await expect(page.getByText(OUT_OF_SERVICE_TEXT)).toBeVisible();
   await expect(field(page, "Stock total")).toHaveValue("3");
   expect((await patches(request))[0].body).toBe('{"totalStock":3}');
+});
+
+/** AC-5 */
+test("a 409 stock_below_reserved says how many are reserved, lists the bookings above Guardar and keeps the values", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "PATCH",
+    path: `/items/${ITEM_IDS.silla}`,
+    status: 409,
+    body: {
+      error: "stock_below_reserved",
+      reserved: 8,
+      bookings: reservedBookings,
+      hasMore: true,
+    },
+  });
+  await openItemsScreen(page, EDIT_SILLA);
+  await field(page, "Stock total").fill("3");
+  await page.getByRole("button", { name: "Guardar" }).click();
+
+  const notice = page.getByRole("alert").filter({ hasText: "reservado" });
+  await expect(
+    notice.getByText(
+      "No alcanza para lo reservado: en algún momento hay 8 reservados.",
+    ),
+  ).toBeVisible();
+  const [confirmed, hold] = await notice.getByRole("listitem").all();
+  await expect(confirmed).toContainText("Lucía Benítez · 5");
+  await expect(confirmed).toContainText(
+    "vie 8 mar 2030, 08:00 → dom 10 mar 2030, 17:00",
+  );
+  await expect(confirmed).toContainText("Confirmada");
+  await expect(hold).toContainText("Bar El Molino · 3");
+  await expect(hold).toContainText(
+    "sáb 9 mar 2030, 11:30 → sáb 9 mar 2030, 19:00",
+  );
+  await expect(hold).toContainText("Bloqueo");
+  await expect(notice.getByText("Y hay más reservas.")).toBeVisible();
+
+  const noticeBox = await notice.boundingBox();
+  const saveBox = await page
+    .getByRole("button", { name: "Guardar" })
+    .boundingBox();
+  expect(noticeBox!.y + noticeBox!.height).toBeLessThanOrEqual(saveBox!.y);
+  await expect(field(page, "Stock total")).toHaveValue("3");
+  expect((await patches(request))[0].body).toBe('{"totalStock":3}');
+});
+
+/** AC-5 */
+test("a 409 stock_below_reserved whose body is not the expected one shows the generic text", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "PATCH",
+    path: `/items/${ITEM_IDS.silla}`,
+    status: 409,
+    body: { error: "stock_below_reserved", reserved: "muchos" },
+  });
+  await openItemsScreen(page, EDIT_SILLA);
+  await field(page, "Stock total").fill("3");
+  await page.getByRole("button", { name: "Guardar" }).click();
+  await expect(page.getByText("Algo salió mal. Probá de nuevo.")).toBeVisible();
+  await expect(page.getByText("en algún momento hay")).toHaveCount(0);
+  await expect(field(page, "Stock total")).toHaveValue("3");
 });
 
 /** AC-27 */

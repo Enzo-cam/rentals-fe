@@ -9,13 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { isOutOfServiceExceeded, takenItemOf } from "../api/failures";
+import {
+  isOutOfServiceExceeded,
+  stockBelowReservedOf,
+  takenItemOf,
+} from "../api/failures";
 import {
   editFormSchemaOf,
   EMPTY_ITEM_FORM,
   itemFormSchema,
   type ItemFormValues,
 } from "../types";
+import { StockBelowReservedNotice } from "./stock-below-reserved-notice";
 import { TakenItemNotice } from "./taken-item-notice";
 import { FORM_ERRORS, FORM_TEXTS, OUT_OF_SERVICE_EXCEEDED } from "./texts";
 
@@ -37,7 +42,8 @@ function ErrorText({ children }: { children: ReactNode }) {
 /**
  * `method="post"` is a net for a submit before hydration. Errors of shape come from the schema and the ones of the
  * API show under the field they are about: the name or the code that is taken, the out of service units that do not
- * fit; anything else goes above the button. `onSubmit` may answer with a text to show there instead of sending
+ * fit; the units reserved that the stock would not cover go above the button with the bookings that hold them, and so
+ * does anything else. `onSubmit` may answer with a text to show there instead of sending
  * (the edit with nothing changed). The values stay as typed after a failure. With `defaultValues` (the edit), the form
  * keeps what it opened with and gives it to `onSubmit` and to the schema: what the item is now, on the server, is not
  * its business.
@@ -68,7 +74,9 @@ export function ItemForm({
 
   const taken = takenItemOf(error);
   const outOfServiceExceeded = isOutOfServiceExceeded(error);
-  const otherError = Boolean(error) && !taken && !outOfServiceExceeded;
+  const stockBelowReserved = stockBelowReservedOf(error);
+  const otherError =
+    Boolean(error) && !taken && !outOfServiceExceeded && !stockBelowReserved;
 
   function field(
     name: Path<ItemFormValues>,
@@ -122,6 +130,9 @@ export function ItemForm({
       )}
       {field("description", FORM_TEXTS.description)}
       {errors.root?.notice && <p role="status">{errors.root.notice.message}</p>}
+      {stockBelowReserved && (
+        <StockBelowReservedNotice stock={stockBelowReserved} />
+      )}
       {otherError && <ErrorText>{describeError(error, FORM_ERRORS)}</ErrorText>}
       <Button type="submit" size="lg" disabled={busy}>
         {busy ? FORM_TEXTS.saving : FORM_TEXTS.save}

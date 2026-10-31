@@ -57,6 +57,11 @@ export const FORM_ERRORS = {
   invalid_request: "Revisá los datos e intentá de nuevo.",
 };
 
+export const STOCK_BELOW_RESERVED_TEXTS = {
+  reserved: (n: number) =>
+    `No alcanza para lo reservado: en algún momento hay ${n} ${n === 1 ? "reservado" : "reservados"}.`,
+};
+
 export const OUT_OF_SERVICE_EXCEEDED =
   "No puede haber más unidades fuera de servicio que el stock total.";
 
@@ -79,4 +84,5 @@ export const ARCHIVE_TEXTS = {
   cancel: "Cancelar",
   title: (name: string) => `¿Dar de baja «${name}»?`,
   description: "No se borra: lo podés reactivar cuando quieras.",
+  hasBookings: "No se puede dar de baja: tiene reservas activas.",
 };

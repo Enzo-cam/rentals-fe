@@ -10,7 +10,13 @@ import {
   overrideNext,
   resetFakeApi,
 } from "../support/fake-api-control";
-import { COPA, ITEM_IDS, LIVING, openItemsScreen } from "../support/items";
+import {
+  COPA,
+  ITEM_IDS,
+  LIVING,
+  openItemsScreen,
+  reservedBookings,
+} from "../support/items";
 import { signInThroughProxy, USERS } from "../support/session";
 
 const READ_ONLY =
@@ -74,7 +80,9 @@ test("confirming sends the POST as JSON without a body, shows Dado de baja and a
   const before = (await calls(request, "GET", "/items")).length;
   await page.getByRole("link", { name: "Volver a los artículos" }).click();
   await page.waitForURL("**/articulos");
-  await expect(page.getByRole("listitem").first()).toBeVisible();
+  await expect(
+    page.getByRole("main").getByRole("listitem").first(),
+  ).toBeVisible();
   await expect
     .poll(async () => (await calls(request, "GET", "/items")).length)
     .toBe(before + 1);
@@ -151,6 +159,47 @@ test("a 403 read_only shows its text and the item stays active", async ({
     .getByRole("button", { name: "Dar de baja" })
     .click();
   await expect(page.getByText(READ_ONLY)).toBeVisible();
+  await expect(page.getByText("Dado de baja", { exact: true })).toHaveCount(0);
+});
+
+/** AC-6 */
+test("a 409 item_has_bookings says it cannot be archived, lists the bookings and the item stays active", async ({
+  page,
+  request,
+}) => {
+  await overrideNext(request, {
+    method: "POST",
+    path: `/items/${ITEM_IDS.copa}/archive`,
+    status: 409,
+    body: {
+      error: "item_has_bookings",
+      bookings: reservedBookings,
+      hasMore: false,
+    },
+  });
+  await openItemsScreen(page, `/articulos/${ITEM_IDS.copa}`);
+  await archiveButton(page).click();
+  await page
+    .getByRole("alertdialog")
+    .getByRole("button", { name: "Dar de baja" })
+    .click();
+
+  const notice = page
+    .getByRole("alert")
+    .filter({ hasText: "reservas activas" });
+  await expect(
+    notice.getByText("No se puede dar de baja: tiene reservas activas."),
+  ).toBeVisible();
+  const [confirmed, hold] = await notice.getByRole("listitem").all();
+  await expect(confirmed).toContainText("Lucía Benítez · 5");
+  await expect(confirmed).toContainText(
+    "vie 8 mar 2030, 08:00 → dom 10 mar 2030, 17:00",
+  );
+  await expect(confirmed).toContainText("Confirmada");
+  await expect(hold).toContainText("Bar El Molino · 3");
+  await expect(hold).toContainText("Bloqueo");
+  await expect(notice.getByText("Y hay más reservas.")).toHaveCount(0);
+  await expect(archiveButton(page)).toBeEnabled();
   await expect(page.getByText("Dado de baja", { exact: true })).toHaveCount(0);
 });
 

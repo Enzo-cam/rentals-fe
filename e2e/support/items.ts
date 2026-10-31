@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 
 import type { components } from "../../src/api/schema";
 
+type BookingRef = components["schemas"]["BookingRef"];
 type Item = components["schemas"]["Item"];
 type ItemWithPrice = components["schemas"]["ItemWithPrice"];
 
@@ -196,3 +197,26 @@ export const rejectedImport = {
     valid: false,
   },
 } satisfies ItemImportRejected;
+
+/**
+ * Two bookings in 2030, so the year always shows: the confirmed one reads `vie 8 mar 2030, 08:00 → dom 10 mar 2030,
+ * 17:00` and the hold `sáb 9 mar 2030, 11:30 → sáb 9 mar 2030, 19:00` in Argentina time.
+ */
+export const reservedBookings = [
+  {
+    id: "cccccccc-0000-4000-8000-000000000001",
+    status: "confirmed",
+    deliveryAt: "2030-03-08T11:00:00Z",
+    pickupAt: "2030-03-10T20:00:00Z",
+    quantity: 5,
+    customerName: "Lucía Benítez",
+  },
+  {
+    id: "cccccccc-0000-4000-8000-000000000002",
+    status: "hold",
+    deliveryAt: "2030-03-09T14:30:00Z",
+    pickupAt: "2030-03-09T22:00:00Z",
+    quantity: 3,
+    customerName: "Bar El Molino",
+  },
+] satisfies BookingRef[];
