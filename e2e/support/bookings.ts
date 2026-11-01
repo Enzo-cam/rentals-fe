@@ -13,6 +13,7 @@ export const BOOKING_IDS = {
   ana: "cccccccc-0000-4000-8000-000000000003",
   marcos: "cccccccc-0000-4000-8000-000000000004",
   asociacion: "cccccccc-0000-4000-8000-000000000005",
+  olga: "cccccccc-0000-4000-8000-000000000007",
 };
 
 /**
@@ -122,4 +123,13 @@ export async function bookingListCalls(request: APIRequestContext) {
     (call) => call.method === "GET" && call.path === "/bookings",
   );
   return calls.map((call) => new URLSearchParams(call.query));
+}
+
+/** The calls that change the state of a booking (`POST /bookings/{id}/confirm|deliver|return|cancel`) the page made, in order. */
+export async function bookingActionCalls(request: APIRequestContext) {
+  return (await apiRequests(request)).filter(
+    (call) =>
+      call.method === "POST" &&
+      /^\/bookings\/[^/]+\/(confirm|deliver|return|cancel)$/.test(call.path),
+  );
 }

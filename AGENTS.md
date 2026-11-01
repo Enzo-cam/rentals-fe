@@ -55,11 +55,11 @@ src/
 │   │   ├── api/                keys, requests (GET /availability) y filtros de la URL (fechas locales, sin offset)
 │   │   ├── hooks/              use-availability (pide solo con el período completo, staleTime 0)
 │   │   └── components/         pantalla, formulario del período, fila, textos
-│   ├── bookings/               reservas, solo lectura: lista con filtro de estado, detalle, BookingStatusBadge (estado
-│   │   │                       en píldora) y BookingRefList (la lista de reservas que nombra un 409); se importa solo por index.ts
-│   │   ├── api/                keys, requests (GET /bookings y /bookings/{id}), filtro de estado de la URL y falla "no existe"
-│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0
-│   │   └── components/         pantalla, filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API), textos
+│   ├── bookings/               reservas: lista con filtro de estado, detalle con las acciones de estado (confirmar, entregar, registrar la
+│   │   │                       vuelta y cancelar), BookingStatusBadge (estado en píldora) y BookingRefList (la lista de reservas que nombra un 409); se importa solo por index.ts
+│   │   ├── api/                keys, requests (lecturas y las 4 acciones con Idempotency-Key), filtro de estado de la URL, fallas (no existe, transición, stock y baja) y bookingActionsOf (botones por estado y rol)
+│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0, y use-booking-action (useIdempotentMutation)
+│   │   └── components/         pantalla, filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API), BookingActions (la mutación vive acá y no en el diálogo), textos
 │   ├── customers/              clientes: lista, búsqueda, alta y edición en una hoja (se importa solo por index.ts):
 │   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas (409 y 400) y acceso por rol
 │   │   ├── hooks/              use-customers, use-create-customer, use-update-customer y use-customer-access

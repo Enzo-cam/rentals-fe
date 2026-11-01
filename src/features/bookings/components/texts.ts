@@ -1,4 +1,5 @@
 import { formatCents } from "@/lib/format/money";
+import { formatWholeNumber } from "@/lib/format/whole-number";
 
 import type { BookingStatus } from "../types";
 
@@ -45,4 +46,22 @@ export const BOOKING_DETAIL_TEXTS = {
   balanceDue: "Saldo a cobrar",
   each: "c/u",
   depositOn: (amount: string, date: string) => `${amount} el ${date}`,
+};
+
+export const BOOKING_ACTION_TEXTS = {
+  confirm: "Confirmar",
+  deliver: "Entregar",
+  return: "Registrar la vuelta",
+  cancel: "Cancelar reserva",
+  keep: "Volver",
+  cancelTitle: (customerName: string) =>
+    `¿Cancelar la reserva de ${customerName}?`,
+  cancelDescription:
+    "Se liberan las unidades al instante. La seña queda como está.",
+  changed: "Esta reserva cambió mientras tanto. Mirá cómo quedó.",
+  pickupInPast: "El retiro ya pasó: cambiale la fecha antes de confirmar.",
+  unknownItem: "Un artículo",
+  notEnough: (itemName: string, requested: number, available: number) =>
+    `${itemName}: pediste ${formatWholeNumber(requested)} y hay ${formatWholeNumber(available)} ${available === 1 ? "libre" : "libres"}.`,
+  archivedItem: (itemName: string) => `${itemName}: dado de baja.`,
 };

@@ -13,6 +13,7 @@ import { ROUTES } from "@/lib/routes";
 import { isBookingMissing } from "../api/failures";
 import { useBooking } from "../hooks/use-booking";
 import type { Booking } from "../types";
+import { BookingActions } from "./booking-actions";
 import { BookingStatusBadge } from "./booking-status-badge";
 import { BOOKING_DETAIL_TEXTS, BOOKINGS_TEXTS } from "./texts";
 
@@ -137,6 +138,7 @@ export function BookingDetail({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-4">
       {booking.data && <BookingBody booking={booking.data} />}
+      {booking.data && <BookingActions booking={booking.data} />}
       {booking.isPending && <p role="status">{BOOKING_DETAIL_TEXTS.loading}</p>}
       {booking.isError && isBookingMissing(booking.error) && (
         <p role="alert">{BOOKING_DETAIL_TEXTS.missing}</p>
