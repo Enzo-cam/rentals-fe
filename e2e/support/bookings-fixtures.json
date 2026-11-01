@@ -191,6 +191,30 @@
       "lines": [],
       "freightCents": 0,
       "deposit": null
+    },
+    {
+      "businessId": "33333333-3333-4333-8333-333333333333",
+      "id": "cccccccc-0000-4000-8000-000000000007",
+      "status": "confirmed",
+      "holdExpiresAt": null,
+      "holdExpired": false,
+      "customer": {
+        "id": "dddddddd-0000-4000-8000-000000000007",
+        "name": "Cliente de Olga",
+        "whatsapp": "3794 111222"
+      },
+      "deliveryAt": "2030-03-08T11:00:00Z",
+      "pickupAt": "2030-03-10T20:00:00Z",
+      "address": null,
+      "note": null,
+      "deliveredAt": null,
+      "returnRecordedAt": null,
+      "cancelledAt": null,
+      "createdAt": "2030-02-20T15:00:00Z",
+      "balanceDueCents": 100000,
+      "lines": [],
+      "freightCents": 0,
+      "deposit": null
     }
   ]
 }

@@ -117,6 +117,7 @@ function control(req, res, path) {
     sessionApi.reset();
     itemsApi.reset();
     customersApi.reset();
+    bookingsApi.reset();
     return json(res, 200, { ok: true });
   }
   if (req.method === "POST" && path === "/__control/override") {
