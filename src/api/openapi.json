@@ -892,6 +892,19 @@
               "null"
             ]
           },
+          "eventDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "occasion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "deliveredAt": {
             "type": [
               "string",
@@ -918,7 +931,8 @@
             "format": "date-time"
           },
           "balanceDueCents": {
-            "type": "integer"
+            "type": "integer",
+            "description": "What is left to collect: the stored total minus the deposit (totalCents − deposit.amountCents). Negative when the deposit is over the total. Every role gets it."
           },
           "lines": {
             "type": "array",
@@ -928,6 +942,10 @@
           },
           "freightCents": {
             "type": "integer"
+          },
+          "totalCents": {
+            "type": "integer",
+            "description": "The total of the booking, the one that is charged: typed by the user, so it may differ from Σ(quantity × priceCents) + freightCents. When the booking was created without it, it is that sum at that moment. It changes only when a PATCH sends it. balanceDueCents = totalCents − deposit."
           },
           "deposit": {
             "type": [
@@ -960,6 +978,8 @@
           "pickupAt",
           "address",
           "note",
+          "eventDate",
+          "occasion",
           "deliveredAt",
           "returnRecordedAt",
           "cancelledAt",
@@ -967,6 +987,7 @@
           "balanceDueCents",
           "lines",
           "freightCents",
+          "totalCents",
           "deposit"
         ],
         "additionalProperties": false
@@ -1051,6 +1072,19 @@
               "null"
             ]
           },
+          "eventDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "occasion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "deliveredAt": {
             "type": [
               "string",
@@ -1077,7 +1111,8 @@
             "format": "date-time"
           },
           "balanceDueCents": {
-            "type": "integer"
+            "type": "integer",
+            "description": "What is left to collect: the stored total minus the deposit (totalCents − deposit.amountCents). Negative when the deposit is over the total. Every role gets it."
           },
           "lines": {
             "type": "array",
@@ -1096,6 +1131,8 @@
           "pickupAt",
           "address",
           "note",
+          "eventDate",
+          "occasion",
           "deliveredAt",
           "returnRecordedAt",
           "cancelledAt",
@@ -1267,6 +1304,322 @@
         "required": [
           "items",
           "nextCursor"
+        ],
+        "additionalProperties": false
+      },
+      "WeekendSheetWithPrices": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeekendSheetDayWithPrices"
+            }
+          },
+          "overdue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingWithPrices"
+            }
+          }
+        },
+        "required": [
+          "days",
+          "overdue"
+        ],
+        "additionalProperties": false
+      },
+      "WeekendSheetDayWithPrices": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "deliveries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingWithPrices"
+            }
+          },
+          "pickups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingWithPrices"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "deliveries",
+          "pickups"
+        ],
+        "additionalProperties": false
+      },
+      "WeekendSheet": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeekendSheetDay"
+            }
+          },
+          "overdue": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          }
+        },
+        "required": [
+          "days",
+          "overdue"
+        ],
+        "additionalProperties": false
+      },
+      "WeekendSheetDay": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "deliveries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          },
+          "pickups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Booking"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "deliveries",
+          "pickups"
+        ],
+        "additionalProperties": false
+      },
+      "QuoteLink": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "showLinePrices": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "url",
+          "showLinePrices",
+          "createdAt"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuoteWithPrices": {
+        "type": "object",
+        "properties": {
+          "businessName": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "occasion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deliveryAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalCents": {
+            "type": "integer",
+            "description": "The total stored in the booking, typed by the business: it may differ from the lines plus freight."
+          },
+          "deposit": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "amountCents": {
+                "type": "integer"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "amountCents",
+              "date"
+            ],
+            "additionalProperties": false
+          },
+          "allAvailable": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicQuoteLineWithPrice"
+            }
+          },
+          "freightCents": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "businessName",
+          "customerName",
+          "eventDate",
+          "occasion",
+          "deliveryAt",
+          "pickupAt",
+          "totalCents",
+          "deposit",
+          "allAvailable",
+          "lines",
+          "freightCents"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuoteLineWithPrice": {
+        "type": "object",
+        "properties": {
+          "itemName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "priceCents": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "itemName",
+          "quantity",
+          "priceCents"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuote": {
+        "type": "object",
+        "properties": {
+          "businessName": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "eventDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date"
+          },
+          "occasion": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deliveryAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "totalCents": {
+            "type": "integer",
+            "description": "The total stored in the booking, typed by the business: it may differ from the lines plus freight."
+          },
+          "deposit": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "amountCents": {
+                "type": "integer"
+              },
+              "date": {
+                "type": "string",
+                "format": "date"
+              }
+            },
+            "required": [
+              "amountCents",
+              "date"
+            ],
+            "additionalProperties": false
+          },
+          "allAvailable": {
+            "type": "boolean"
+          },
+          "lines": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicQuoteLine"
+            }
+          }
+        },
+        "required": [
+          "businessName",
+          "customerName",
+          "eventDate",
+          "occasion",
+          "deliveryAt",
+          "pickupAt",
+          "totalCents",
+          "deposit",
+          "allAvailable",
+          "lines"
+        ],
+        "additionalProperties": false
+      },
+      "PublicQuoteLine": {
+        "type": "object",
+        "properties": {
+          "itemName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "itemName",
+          "quantity"
         ],
         "additionalProperties": false
       },
@@ -3485,7 +3838,7 @@
     "/bookings": {
       "post": {
         "summary": "Create a booking",
-        "description": "Born as a hold or confirmed, once per Idempotency-Key (a UUID, required): the same key with the same body returns the same booking, the same key with another body is 422 idempotency_key_reused, and a key is good for 72 hours. A hold needs holdExpiresAt, after now and not after deliveryAt; a confirmed booking must not have one. deliveryAt may be in the past (it is already out), pickupAt must be after deliveryAt and after now. Each line fixes its price: priceCents if sent, else the item list price at this moment. freightCents is 0 by default and deposit is optional. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices (the roles that create always see prices).",
+        "description": "Born as a hold or confirmed, once per Idempotency-Key (a UUID, required): the same key with the same body returns the same booking, the same key with another body is 422 idempotency_key_reused, and a key is good for 72 hours. A hold needs holdExpiresAt, after now and not after deliveryAt; a confirmed booking must not have one. deliveryAt may be in the past (it is already out), pickupAt must be after deliveryAt and after now. Each line fixes its price: priceCents if sent, else the item list price at this moment. freightCents is 0 by default and deposit is optional. totalCents is the total the user types (up to the same bound as freightCents); without it the booking stores Σ(quantity × line price) + freightCents of this moment, and either way balanceDueCents = totalCents − deposit. eventDate (a calendar date) and occasion (up to 120 characters) are optional too: the day and the reason of the party, which is not the delivery day. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices (the roles that create always see prices).",
         "parameters": [
           {
             "schema": {
@@ -3539,11 +3892,26 @@
                     "minLength": 1,
                     "maxLength": 2000
                   },
+                  "eventDate": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "occasion": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
                   "freightCents": {
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 10000000000,
                     "default": 0
+                  },
+                  "totalCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000000000,
+                    "description": "The total the business charges, typed by the user (owner or manager): it may differ from Σ(quantity × line price) + freightCents. balanceDueCents = totalCents − deposit. Optional: without it the booking stores the sum of its lines and freight at this moment."
                   },
                   "deposit": {
                     "type": "object",
@@ -3725,7 +4093,7 @@
       },
       "get": {
         "summary": "List the bookings of the business",
-        "description": "Ordered by delivery date and id, every status unless status is given. Keyset pagination: repeat the same URL with cursor=nextCursor and the same status. A hold past its expiry is listed with holdExpired true. Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.",
+        "description": "Ordered by delivery date and id, every status unless status is given. from keeps only the bookings that are not finished: pickupAt at or after it, or delivered and still out even if the pickup passed (the list \"from today\" sends the start of the day), combined with status. Keyset pagination: repeat the same URL with cursor=nextCursor and the same status and from. A hold past its expiry is listed with holdExpired true. Roles without view_prices get Booking: no line prices, freight, total or deposit, but with the note, the event date, the occasion, the customer and balanceDueCents. Allowed for every role and also when the business is read only.",
         "parameters": [
           {
             "schema": {
@@ -3762,6 +4130,17 @@
             "required": false,
             "name": "status",
             "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Only the bookings that are not finished: those whose pickupAt is at or after this instant, plus the delivered ones still out even if their pickup already passed (a confirmed, returned or cancelled booking picked up before it is left out). An ISO 8601 instant with an offset, for example 2026-11-13T00:00:00-03:00; URL-encode a + offset as %2B."
+            },
+            "required": false,
+            "description": "Only the bookings that are not finished: those whose pickupAt is at or after this instant, plus the delivered ones still out even if their pickup already passed (a confirmed, returned or cancelled booking picked up before it is left out). An ISO 8601 instant with an offset, for example 2026-11-13T00:00:00-03:00; URL-encode a + offset as %2B.",
+            "name": "from",
+            "in": "query"
           }
         ],
         "responses": {
@@ -3783,7 +4162,7 @@
             }
           },
           "400": {
-            "description": "invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and this status.",
+            "description": "invalid_request or invalid_cursor: a query parameter is not valid (from included: not an instant with an offset, or outside 2000-2099), or the cursor does not belong to this list, this status and this from.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3838,7 +4217,7 @@
     "/bookings/{id}": {
       "get": {
         "summary": "Read a booking",
-        "description": "Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.",
+        "description": "Roles without view_prices get Booking: no line prices, freight, total or deposit, but with the note, the event date, the occasion, the customer and balanceDueCents. Allowed for every role and also when the business is read only.",
         "parameters": [
           {
             "schema": {
@@ -3922,7 +4301,7 @@
       },
       "patch": {
         "summary": "Edit a booking",
-        "description": "Only the keys sent change, and sending what the booking already has changes nothing (200, nothing written); the values are absolute, so there is no Idempotency-Key. lines is the complete list by item: an item that is not in it is removed (its line is kept with removed_at), a new one takes priceCents or the list price of this moment, and one that stays keeps its price. address and note accept null to clear them. What can change depends on the status: a hold, everything; a confirmed booking, everything but holdExpiresAt and without changing the price of an existing line (line_price_locked); a delivered one, only pickupAt, address and note; a returned or cancelled one, nothing (booking_not_editable). The deposit is loaded once (deposit_already_set for another amount or date). pickupAt is compared with now only if it changes, and holdExpiresAt too (after now and not after deliveryAt). A change that makes an item hold more units, in other dates or quantities, or moves the expiry of an expired hold, is checked against the stock; one that does not raise the occupation is accepted even if an overdue booking already exceeds the stock. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.",
+        "description": "Only the keys sent change, and sending what the booking already has changes nothing (200, nothing written); the values are absolute, so there is no Idempotency-Key. lines is the complete list by item: an item that is not in it is removed (its line is kept with removed_at), a new one takes priceCents or the list price of this moment, and one that stays keeps its price. totalCents replaces the stored total; without it the total stays as it was, even when lines or freightCents change. address, note, eventDate and occasion accept null to clear them. What can change depends on the status: a hold, everything; a confirmed booking, everything but holdExpiresAt and without changing the price of an existing line (line_price_locked); a delivered one, only pickupAt, address and note (any other key, totalCents and freightCents included, is booking_not_editable); a returned or cancelled one, nothing (booking_not_editable). The deposit is loaded once (deposit_already_set for another amount or date). pickupAt is compared with now only if it changes, and holdExpiresAt too (after now and not after deliveryAt). A change that makes an item hold more units, in other dates or quantities, or moves the expiry of an expired hold, is checked against the stock; one that does not raise the occupation is accepted even if an overdue booking already exceeds the stock. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.",
         "parameters": [
           {
             "schema": {
@@ -3973,10 +4352,31 @@
                     "minLength": 1,
                     "maxLength": 2000
                   },
+                  "eventDate": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "date"
+                  },
+                  "occasion": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
                   "freightCents": {
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 10000000000
+                  },
+                  "totalCents": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000000000,
+                    "description": "The total the business charges, typed by the user (owner or manager): it may differ from Σ(quantity × line price) + freightCents. balanceDueCents = totalCents − deposit. Without it the stored total stays, even if lines or freightCents change."
                   },
                   "deposit": {
                     "type": "object",
@@ -4710,6 +5110,394 @@
           },
           "422": {
             "description": "idempotency_key_reused: the key was used with another request in the last 72 hours.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weekend-sheet": {
+      "get": {
+        "summary": "Read the weekend sheet",
+        "description": "What goes out and what comes back each day, with the detail of each booking. from and to are required calendar dates (YYYY-MM-DD) in Argentina time, to included, to not before from and at most 7 days in all. days has an entry for every date of the range, in order, also the empty ones: deliveries are the bookings whose deliveryAt falls on that day and pickups the ones whose pickupAt does, each list by that instant and id (a booking whose delivery and pickup are both in the range is in both). overdue is the overdue pickups as the stock rule defines them: confirmed or delivered bookings (no return recorded) whose pickup day has already ended at the server clock, and whose pickupAt is before from so they are not repeated in days, by pickupAt and id. They still hold their units, also a confirmed one that was never marked delivered, so the owner can fix its status. A pickup before from whose day has not ended yet is in neither days nor overdue. overdue is bounded only by the data of the business itself. Every status is listed except cancelled and a hold past its expiry; each booking keeps its status (hold, confirmed, delivered or returned). No pagination: the result is bounded by the range. Roles without view_prices get Booking: no line prices, freight, total or deposit, but with the address, the note, the customer and balanceDueCents (the stored total minus the deposit). Allowed for every role and also when the business is read only.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": true,
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "required": true,
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The sheet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/WeekendSheetWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WeekendSheet"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: from or to is missing or is not a calendar date, to is before from, or the range is more than 7 days.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected: the session has no business yet.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found: the user has no active membership in the business of the session.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/bookings/{id}/quote-link": {
+      "post": {
+        "summary": "Share a booking with its customer",
+        "description": "Answers the active quote link of the booking, or creates one with a new token: there is one active link per booking and sharing again answers the same url and createdAt. showLinePrices decides whether the customer sees the price of each line and the freight; the total and the deposit are always shown. Sending the flag the active link already has writes nothing and works while the business is read only; changing it or creating the link needs a business that is not read only. A delivered or returned booking is shared as it is; a cancelled one is 409 booking_cancelled. No Idempotency-Key: the result does not depend on how many times the request arrives. Needs manage_quote_links.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "showLinePrices": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "showLinePrices"
+                ],
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The active link.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuoteLink"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID, or the body is not exactly { showLinePrices: boolean }.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage quote links) or read_only (only when sharing: the subscription is not live and the request would write).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "booking_cancelled: a cancelled booking is not shared, and nothing changes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error: nothing was written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Revoke the quote link of a booking",
+        "description": "Sets revoked_at on the active link: its token answers 404 from now on and sharing again gives a new one. Without an active link it answers 204 and writes nothing. Like every mutation it requires Content-Type: application/json even though it has no body. Needs manage_quote_links; it works while the business is read only, since revoking only shrinks what is exposed.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Revoked, or there was no active link. No body."
+          },
+          "400": {
+            "description": "invalid_request: the id is not a UUID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "unauthenticated: no valid __Host-session cookie.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage quote links) or read_only (only when sharing: the subscription is not live and the request would write).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "payload_too_large: the body is over 16 KiB.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "unsupported_media_type: the Content-Type is not application/json.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "internal_error: nothing was written.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/quotes/{token}": {
+      "get": {
+        "summary": "Open a shared quote",
+        "description": "For the customer, without a session: the booking as the business shared it. PublicQuoteWithPrices when the link shows line prices (with priceCents per line and freightCents), PublicQuote when it does not; both have the total and the deposit. totalCents is the total stored in the booking, the one the business typed: it may differ from the lines plus freight, and the lines keep their own prices. allAvailable is true when every line fits now in the booking period under the same rule that accepts a booking; a hold is quoted as if it were confirmed now, and one whose pickup already passed is not available. Works while the business is read only. Every answer has Cache-Control: no-store and X-Robots-Tag: noindex. Counts 30 answers 404 per IP (the first X-Forwarded-For value) in 15 minutes; a 200 does not count.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "name": "token",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The quote.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PublicQuoteWithPrices"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PublicQuote"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "quote_not_found: the token is unknown, malformed or revoked, or the booking was cancelled. The same answer for all.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "too_many_attempts: too many 404 answers from this IP in the window.",
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "string",
+                  "description": "Seconds until the window ends."
+                },
+                "required": true,
+                "description": "Seconds until the window ends."
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
