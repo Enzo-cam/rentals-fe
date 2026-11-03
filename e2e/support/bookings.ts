@@ -34,11 +34,14 @@ export const confirmed = {
   pickupAt: "2030-03-10T20:00:00Z",
   address: "Av. Costanera 1200, Corrientes",
   note: "Llevar mantel de repuesto",
+  eventDate: null,
+  occasion: null,
   deliveredAt: null,
   returnRecordedAt: null,
   cancelledAt: null,
   createdAt: "2030-02-20T15:00:00Z",
   balanceDueCents: 1200000,
+  totalCents: 1800000,
   lines: [
     {
       id: "eeeeeeee-0000-4000-8000-000000000001",
@@ -74,6 +77,7 @@ export const hold = {
   address: null,
   note: null,
   balanceDueCents: 800000,
+  totalCents: 800000,
   deposit: null,
 } satisfies BookingWithPrices;
 
@@ -89,6 +93,8 @@ export function withoutPrices(booking: BookingWithPrices): Booking {
     pickupAt: booking.pickupAt,
     address: booking.address,
     note: booking.note,
+    eventDate: booking.eventDate,
+    occasion: booking.occasion,
     deliveredAt: booking.deliveredAt,
     returnRecordedAt: booking.returnRecordedAt,
     cancelledAt: booking.cancelledAt,
@@ -123,6 +129,20 @@ export async function bookingListCalls(request: APIRequestContext) {
     (call) => call.method === "GET" && call.path === "/bookings",
   );
   return calls.map((call) => new URLSearchParams(call.query));
+}
+
+/** The writes of the form the page made, in order: `POST /bookings` and `PATCH /bookings/{id}`. */
+export async function bookingWriteCalls(request: APIRequestContext) {
+  return (await apiRequests(request)).filter(
+    (call) =>
+      (call.method === "POST" && call.path === "/bookings") ||
+      (call.method === "PATCH" && /^\/bookings\/[^/]+$/.test(call.path)),
+  );
+}
+
+/** The JSON body of a recorded call. */
+export function bodyOf(call: { body: string | null }): unknown {
+  return JSON.parse(call.body ?? "null");
 }
 
 /** The calls that change the state of a booking (`POST /bookings/{id}/confirm|deliver|return|cancel`) the page made, in order. */
