@@ -96,5 +96,13 @@ export function createCustomersApi({ accessOf, frontOrigin }) {
     return fail(res, 404, "not_found");
   }
 
-  return { handle, reset };
+  /** The customer of the business, as the bookings fake shows it inside a booking. */
+  function find(id, businessId) {
+    const found = store.find(
+      (customer) => customer.id === id && customer.businessId === businessId,
+    );
+    return found ? withoutBusiness(found) : null;
+  }
+
+  return { handle, reset, find };
 }
