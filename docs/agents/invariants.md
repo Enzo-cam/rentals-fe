@@ -18,6 +18,10 @@ acá solo lo que el frontend puede romper por su cuenta.
   la ayuda de libres nunca impide guardar, y no hay actualizaciones optimistas. La suma y los atajos viven en
   `src/features/bookings/api/booking-body.ts`, con Vitest. El rojo es una comparación en
   `components/booking-lines.tsx`.
+- **Comodidades por estado.** No son reglas: la API decide igual y responde 409 si no corresponde.
+  - `bookingActionsOf` decide qué botones de estado se muestran.
+  - `bookingEditOf` (`src/features/bookings/api/edit.ts`) decide qué campos se pueden editar en cada estado, con la
+    tabla de `editable` de `rentals-be`.
 - **Auditor:** integridad
 
 ## INV-FE-02 — Tipos de la API generados, nunca escritos a mano
