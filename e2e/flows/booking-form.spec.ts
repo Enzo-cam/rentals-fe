@@ -42,6 +42,7 @@ const PICKUP_AFTER_DELIVERY = "El retiro tiene que ser después de la entrega.";
 const PICKUP_IN_PAST = "El retiro ya pasó: elegí un día que no haya pasado.";
 const HOLD_EXPIRY =
   "El bloqueo tiene que vencer después de ahora y no después de la entrega.";
+const TRANSPARENT = "rgba(0, 0, 0, 0)";
 const PRICE_TEXT =
   "Escribí el precio en pesos, sin centavos: 1500, 1.500 o $ 1.500.";
 
@@ -611,7 +612,7 @@ test("the period and the hold expiry that the API refuses are said under the fie
 });
 
 /** AC-9 */
-test("a 422 idempotency_key_reused says the booking was already saved and offers the list of reservations", async ({
+test("a 422 idempotency_key_reused says the booking was already saved and offers the list of reservations, with the border of an outline button", async ({
   page,
   request,
 }) => {
@@ -625,9 +626,11 @@ test("a 422 idempotency_key_reused says the booking was already saved and offers
   });
   await save(page).click();
   await expect(main(page).getByText(REUSED)).toBeVisible();
-  await expect(
-    main(page).getByRole("link", { name: "Ver las reservas" }),
-  ).toHaveAttribute("href", "/reservas");
+  const seeBookings = main(page).getByRole("link", {
+    name: "Ver las reservas",
+  });
+  await expect(seeBookings).toHaveAttribute("href", "/reservas");
+  await expect(seeBookings).not.toHaveCSS("border-top-color", TRANSPARENT);
 });
 
 /** AC-10 */
