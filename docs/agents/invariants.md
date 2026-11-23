@@ -8,6 +8,16 @@ acá solo lo que el frontend puede romper por su cuenta.
 - **Regla:** disponibilidad, transiciones de estado y montos los calcula `rentals-be`. El frontend los muestra. Una
   validación local es solo de forma (campo vacío, formato) y nunca reemplaza la del backend.
 - **Por qué:** dos implementaciones de la misma regla terminan dando dos respuestas.
+- **Excepción, formulario de reservas** (fundador, 2026-10-31 y 2026-11-01). El front hace tres cuentas que son solo
+  ayudas:
+  - suma las líneas y el flete como sugerencia del Total ("Suma de líneas y flete");
+  - calcula los atajos de la seña (10 %, 20 % y 30 % del Total, redondeados a pesos);
+  - pinta en rojo la ayuda de libres cuando la cantidad la supera.
+
+  Se guarda lo que la persona deja en los campos. El saldo, el stock, las fechas y las transiciones los decide la API:
+  la ayuda de libres nunca impide guardar, y no hay actualizaciones optimistas. La suma y los atajos viven en
+  `src/features/bookings/api/booking-body.ts`, con Vitest. El rojo es una comparación en
+  `components/booking-lines.tsx`.
 - **Auditor:** integridad
 
 ## INV-FE-02 — Tipos de la API generados, nunca escritos a mano
