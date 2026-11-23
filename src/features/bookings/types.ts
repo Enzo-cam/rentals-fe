@@ -7,6 +7,10 @@ export type BookingRef = components["schemas"]["BookingRef"];
 export type Booking =
   components["schemas"]["BookingWithPrices"] | components["schemas"]["Booking"];
 
+/** An item the picker offers: with its list price for the roles that view prices (the ones that create bookings). */
+export type ActiveItem =
+  components["schemas"]["ItemWithPrice"] | components["schemas"]["Item"];
+
 /** What the list asks the API for: `status` only when it is not `null`. */
 export type BookingFilters = {
   status: BookingStatus | null;

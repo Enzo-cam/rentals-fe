@@ -11,6 +11,7 @@ export const ROUTES = {
   customers: "/clientes",
   availability: "/disponibilidad",
   bookings: "/reservas",
+  newBooking: "/reservas/nueva",
   booking: (id: string) => `/reservas/${id}`,
 } as const;
 

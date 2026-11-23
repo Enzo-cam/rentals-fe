@@ -5,6 +5,7 @@ export const bookingKeys = {
   lists: () => [...bookingKeys.all, "list"] as const,
   list: (filters: BookingFilters) => [...bookingKeys.lists(), filters] as const,
   detail: (id: string) => [...bookingKeys.all, "detail", id] as const,
+  create: () => [...bookingKeys.all, "create"] as const,
   activeItems: (q: string | null) =>
     [...bookingKeys.all, "active-items", q] as const,
 };

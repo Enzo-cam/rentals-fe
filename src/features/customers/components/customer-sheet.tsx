@@ -16,18 +16,16 @@ import { FORM_TEXTS, SHEET_TEXTS } from "./texts";
 
 type FormProps = {
   onTargetChange: (target: SheetTarget) => void;
+  onSaved?: (customer: Customer) => void;
 };
 
-function NewCustomerForm({
-  onTargetChange,
-  onCreated,
-}: FormProps & { onCreated?: (customer: Customer) => void }) {
+function NewCustomerForm({ onTargetChange, onSaved }: FormProps) {
   const create = useCreateCustomer();
   return (
     <CustomerForm
       onSubmit={(values) =>
         create.submitOnce(createBodyOf(values), (customer) => {
-          onCreated?.(customer);
+          onSaved?.(customer);
           onTargetChange(null);
         })
       }
@@ -38,9 +36,17 @@ function NewCustomerForm({
   );
 }
 
+/**
+ * Saving with nothing changed sends no PATCH. Where the sheet was opened with `onSaved` (the booking form, which got
+ * here from a taken WhatsApp and only wants to use that customer), it is the customer the sheet opened with, handed over
+ * as it is, and the sheet closes. Without `onSaved` (the list of customers) there is nobody to hand it to, so it says
+ * that nothing changed and stays open.
+ * AC-3 (rentals-be#29)
+ */
 function EditCustomerForm({
   customer,
   onTargetChange,
+  onSaved,
 }: FormProps & { customer: Customer }) {
   const update = useUpdateCustomer(customer.id);
   return (
@@ -48,8 +54,16 @@ function EditCustomerForm({
       defaultValues={formValuesOf(customer)}
       onSubmit={(values, opened) => {
         const patch = patchOf(opened, values);
-        if (Object.keys(patch).length === 0) return FORM_TEXTS.unchanged;
-        update.submitOnce(patch, () => onTargetChange(null));
+        if (Object.keys(patch).length === 0) {
+          if (!onSaved) return FORM_TEXTS.unchanged;
+          onSaved(customer);
+          onTargetChange(null);
+          return;
+        }
+        update.submitOnce(patch, (saved) => {
+          onSaved?.(saved);
+          onTargetChange(null);
+        });
       }}
       onEditTaken={(taken) => onTargetChange({ mode: "edit", customer: taken })}
       busy={update.isPending || update.isSuccess}
@@ -61,18 +75,19 @@ function EditCustomerForm({
 /**
  * The sheet over the list, for a new customer or for editing one. There is no `GET /customers/{id}`, so the edit opens
  * with the customer the row (or the 409) already carries. Each form is keyed by what it opened with, so switching to
- * another customer starts the form and its mutation again. The content is scrollable at a short screen. `onCreated`
- * hands over the customer that a new one just created (not an edited one), for the booking form to choose it
- * (AC-3, rentals-be#29).
+ * another customer starts the form and its mutation again. The content is scrollable at a short screen. `onSaved`
+ * hands over the customer that the API answered, for a new one and for an edited one (the 409 of a taken WhatsApp opens
+ * the edit of that customer), so the booking form can choose it; an edit saved with nothing changed hands over the
+ * customer it opened with (`EditCustomerForm`) (AC-3, rentals-be#29).
  */
 export function CustomerSheet({
   target,
   onTargetChange,
-  onCreated,
+  onSaved,
 }: {
   target: SheetTarget;
   onTargetChange: (target: SheetTarget) => void;
-  onCreated?: (customer: Customer) => void;
+  onSaved?: (customer: Customer) => void;
 }) {
   return (
     <Sheet
@@ -96,7 +111,7 @@ export function CustomerSheet({
           {target?.mode === "new" && (
             <NewCustomerForm
               onTargetChange={onTargetChange}
-              onCreated={onCreated}
+              onSaved={onSaved}
             />
           )}
           {target?.mode === "edit" && (
@@ -104,6 +119,7 @@ export function CustomerSheet({
               key={target.customer.id}
               customer={target.customer}
               onTargetChange={onTargetChange}
+              onSaved={onSaved}
             />
           )}
         </div>

@@ -74,3 +74,37 @@ export function archivedItemIdsOf(error: unknown): string[] | null {
     ? body.itemIds
     : null;
 }
+
+/**
+ * What a failed `POST /bookings` is, by the place of the form it shows in: the lines that are short or archived, the
+ * pickup (`invalid_period`, `pickup_in_past`), the expiry of the hold, the key that was already used for another body
+ * (422), or anything else, which goes above the button with the generic text. `null` while there is no error.
+ * AC-6, AC-7, AC-8, AC-9 (rentals-be#29)
+ */
+export type FormFailure =
+  | { kind: "short"; items: ShortItem[] }
+  | { kind: "archived"; itemIds: string[] }
+  | { kind: "invalidPeriod" }
+  | { kind: "pickupInPast" }
+  | { kind: "holdExpiry" }
+  | { kind: "keyReused" }
+  | { kind: "other" };
+
+export function formFailureOf(error: unknown): FormFailure | null {
+  if (!error) return null;
+  const items = insufficientStockOf(error);
+  if (items) return { kind: "short", items };
+  const itemIds = archivedItemIdsOf(error);
+  if (itemIds) return { kind: "archived", itemIds };
+  if (rejectedBodyOf(error, 400, "invalid_period")) {
+    return { kind: "invalidPeriod" };
+  }
+  if (isPickupInPast(error)) return { kind: "pickupInPast" };
+  if (rejectedBodyOf(error, 400, "invalid_hold_expiry")) {
+    return { kind: "holdExpiry" };
+  }
+  if (rejectedBodyOf(error, 422, "idempotency_key_reused")) {
+    return { kind: "keyReused" };
+  }
+  return { kind: "other" };
+}
