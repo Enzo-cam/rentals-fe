@@ -75,11 +75,20 @@ export function archivedItemIdsOf(error: unknown): string[] | null {
     : null;
 }
 
+/** The 409 codes of `PATCH /bookings/{id}` that say the edit no longer fits the booking, each with the text it gets. */
+const EDIT_REJECTIONS = {
+  line_price_locked: "priceLocked",
+  booking_not_editable: "notEditable",
+  deposit_already_set: "depositSet",
+} as const;
+
 /**
- * What a failed `POST /bookings` is, by the place of the form it shows in: the lines that are short or archived, the
- * pickup (`invalid_period`, `pickup_in_past`), the expiry of the hold, the key that was already used for another body
- * (422), or anything else, which goes above the button with the generic text. `null` while there is no error.
- * AC-6, AC-7, AC-8, AC-9 (rentals-be#29)
+ * What a failed `POST /bookings` or `PATCH /bookings/{id}` is, by the place of the form it shows in: the lines that are
+ * short or archived, the pickup (`invalid_period`, `pickup_in_past`), the expiry of the hold, the key that was already
+ * used for another body (422), an edit that no longer fits the booking (409: a price fixed, a status that does not allow
+ * it, a deposit already loaded), or anything else, which goes above the button with the generic text. `null` while there
+ * is no error.
+ * AC-6, AC-7, AC-8, AC-9, AC-21 (rentals-be#29)
  */
 export type FormFailure =
   | { kind: "short"; items: ShortItem[] }
@@ -88,6 +97,10 @@ export type FormFailure =
   | { kind: "pickupInPast" }
   | { kind: "holdExpiry" }
   | { kind: "keyReused" }
+  | {
+      kind: "editRejected";
+      reason: (typeof EDIT_REJECTIONS)[keyof typeof EDIT_REJECTIONS];
+    }
   | { kind: "other" };
 
 export function formFailureOf(error: unknown): FormFailure | null {
@@ -105,6 +118,11 @@ export function formFailureOf(error: unknown): FormFailure | null {
   }
   if (rejectedBodyOf(error, 422, "idempotency_key_reused")) {
     return { kind: "keyReused" };
+  }
+  for (const [code, reason] of Object.entries(EDIT_REJECTIONS)) {
+    if (rejectedBodyOf(error, 409, code)) {
+      return { kind: "editRejected", reason };
+    }
   }
   return { kind: "other" };
 }

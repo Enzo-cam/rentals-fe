@@ -13,6 +13,7 @@ export const ROUTES = {
   bookings: "/reservas",
   newBooking: "/reservas/nueva",
   booking: (id: string) => `/reservas/${id}`,
+  editBooking: (id: string) => `/reservas/${id}/editar`,
 } as const;
 
 /** The screen a user lands on after signing in with a business selected. */

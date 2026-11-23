@@ -108,8 +108,33 @@ del Modo MVP y no se puede partir sin dejar un formulario a medias).
 
 ### C2b
 
-- "Ver todas" y "Desde hoy" conservan el estado.
-- `from` se calcula en cada pedido: pasar la medianoche entre páginas puede dar `invalid_cursor`.
-- Después de editar, la pantalla vuelve al detalle.
-- En la edición, "Hay N libres" aparece solo en las líneas nuevas, porque la API cuenta la propia reserva como ocupada.
-- La edición va sin clave, porque el contrato no la tiene.
+- **Lista:**
+  - "Ver todas" y "Desde hoy" conservan el estado.
+  - `from` se calcula en cada pedido. Pasar la medianoche entre páginas puede dar `invalid_cursor`, y entonces
+    "Reintentar" no se recupera hasta recargar la página.
+  - Vacía y desde hoy, la lista dice "No hay reservas desde hoy.". Con "Ver todas" sigue diciendo "Todavía no hay
+    reservas.".
+- **Edición, qué se muestra:**
+  - El estado no se elige: las transiciones son las acciones del detalle (C1).
+  - En una Entregada se ocultan los campos que no se pueden cambiar; el detalle ya los muestra.
+  - "Hay N libres" aparece solo en las líneas nuevas, porque la API cuenta la propia reserva como ocupada.
+- **Edición, al guardar:**
+  - La edición va sin clave, porque el contrato no la tiene.
+  - Después de editar, la pantalla vuelve al detalle con `router.push`, como en Artículos.
+  - Los tres 409 de la edición salen encima de "Guardar", y los tres vuelven a pedir la reserva:
+    - `line_price_locked`: "El precio de las líneas que ya estaban quedó fijo al confirmar la reserva. Dejalo como
+      estaba.".
+    - `booking_not_editable`: "Esta reserva cambió mientras tanto y ya no admite este cambio. Mirá cómo quedó.".
+    - `deposit_already_set`: "La seña ya estaba cargada y no se puede cambiar. Mirá cómo quedó la reserva.".
+
+### Arreglo que entra en C2b (dueño, 2026-11-23)
+
+`buttonVariants` (`src/components/ui/button.tsx`) no fusionaba las clases, y un `Link` con forma de botón "outline"
+quedaba sin borde. Va un commit `fix(ui)` aparte. Ganan el borde "Consultar disponibilidad" y "Editar" (que lo pide
+AC-13 y AC-23), y también los links que ya existían:
+
+- "Volver a los artículos", en el detalle del artículo y en su edición cuando el artículo no existe;
+- "Ver los artículos", en Cargar lista;
+- "Cargar lista", en Artículos;
+- "Volver a las reservas", en el detalle de la reserva;
+- "Ver las reservas", en el alta.

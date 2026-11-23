@@ -1,15 +1,17 @@
 import { z } from "zod";
 
 import type { paths } from "@/api/schema";
-import { toApiInstant } from "@/lib/format/date-time";
+import { toApiInstant, toLocalInput } from "@/lib/format/date-time";
 import { parsePesos, pesosTextOf } from "@/lib/format/money";
 import { parseWholeNumber } from "@/lib/format/whole-number";
 import {
   MAX_LINES,
   MAX_QUANTITY,
+  type Booking,
   type BookingFormValues,
   type BookingLineValues,
 } from "../types";
+import type { BookingEdit } from "./edit";
 
 export type CreateBookingBody =
   paths["/bookings"]["post"]["requestBody"]["content"]["application/json"];
@@ -244,4 +246,168 @@ export function createBodyOf(values: BookingFormValues): CreateBookingBody {
       }),
     lines: values.lines.map(lineOf),
   };
+}
+
+export type UpdateBookingBody =
+  paths["/bookings/{id}"]["patch"]["requestBody"]["content"]["application/json"];
+
+function lineValuesOf(line: Booking["lines"][number]): BookingLineValues {
+  const priceCents = "priceCents" in line ? line.priceCents : 0;
+  return {
+    itemId: line.itemId,
+    itemName: line.itemName,
+    quantity: String(line.quantity),
+    price: pesosTextOf(priceCents),
+    filledPriceCents: priceCents,
+  };
+}
+
+/**
+ * The form of a booking to edit. The money is there only if the object carries it (the API decides who sees it). The
+ * total is the stored one, as a text and never `null`: in the edit it is not the suggested sum, and it only goes in the
+ * patch if the person changes it. The form only needs to know whether the expiry is asked, so every status that is not a
+ * hold opens as confirmed; the status never goes in a patch and what can change comes from `bookingEditOf`.
+ * AC-15 (rentals-be#29)
+ */
+export function formValuesOf(booking: Booking): BookingFormValues {
+  const priced = "freightCents" in booking ? booking : null;
+  return {
+    status: booking.status === "hold" ? "hold" : "confirmed",
+    customerId: booking.customer.id,
+    customerName: booking.customer.name,
+    holdExpiresAt:
+      booking.holdExpiresAt === null ? "" : toLocalInput(booking.holdExpiresAt),
+    deliveryAt: toLocalInput(booking.deliveryAt),
+    pickupAt: toLocalInput(booking.pickupAt),
+    eventDate: booking.eventDate ?? "",
+    occasion: booking.occasion ?? "",
+    address: booking.address ?? "",
+    note: booking.note ?? "",
+    lines: booking.lines.map(lineValuesOf),
+    freight: priced ? pesosTextOf(priced.freightCents) : "",
+    total: priced ? pesosTextOf(priced.totalCents) : "",
+    depositAmount: priced?.deposit
+      ? pesosTextOf(priced.deposit.amountCents)
+      : "",
+    depositDate: priced?.deposit?.date ?? "",
+  };
+}
+
+/** A freight text in cents: an empty one is 0, as in the create body. `null` if it does not read. */
+function freightCentsOf(text: string): number | null {
+  return orNull(text) === null ? 0 : parsePesos(text);
+}
+
+/**
+ * The lines of the patch, whole as the API wants them (an item that is not in it is removed), or `undefined` if none
+ * was added, removed, changed in quantity or repriced. A line that was there goes with its quantity and no price, so it
+ * keeps the one it has: the price goes only on a new line and, while the status lets the price change, on a line whose
+ * price changed. In a confirmed booking the price of a line that was there is never sent: it was fixed when the booking
+ * was confirmed, and a price that differs from the stored one is a 409 `line_price_locked`.
+ * AC-17, AC-18 (rentals-be#29)
+ */
+function linesPatchOf(
+  opened: BookingFormValues,
+  values: BookingFormValues,
+  edit: BookingEdit,
+): UpdateBookingBody["lines"] {
+  const before = new Map(opened.lines.map((line) => [line.itemId, line]));
+  const sent = values.lines.map((line) => {
+    const was = before.get(line.itemId);
+    const quantity = mustParse(parseWholeNumber(line.quantity, MAX_QUANTITY));
+    const priceCents = mustParse(unitPriceCentsOf(line));
+    const repriced =
+      was !== undefined &&
+      !edit.pricesFixed &&
+      priceCents !== unitPriceCentsOf(was);
+    const touched =
+      was === undefined ||
+      repriced ||
+      quantity !== parseWholeNumber(was.quantity, MAX_QUANTITY);
+    return {
+      touched,
+      line: {
+        itemId: line.itemId,
+        quantity,
+        ...((was === undefined || repriced) && { priceCents }),
+      },
+    };
+  });
+  const removed = opened.lines.some(
+    (was) => !values.lines.some((line) => line.itemId === was.itemId),
+  );
+  return removed || sent.some(({ touched }) => touched)
+    ? sent.map(({ line }) => line)
+    : undefined;
+}
+
+/**
+ * Only the keys that the status lets change and that changed since the form opened (`opened` is what it was filled with,
+ * never the latest the server sent: a field the person did not touch must not overwrite what somebody else changed
+ * meanwhile). A key that did not change is never sent: in a delivered booking any other key is a 409, and the
+ * total goes only if the person changed it, because without it the stored one stays when the lines or the freight
+ * change (rentals-be#28). Texts are compared after trimming and amounts after parsing, so a space or `$ ` is not a
+ * change, and an untouched amount is never parsed: it may carry cents, which the form cannot read. A cleared text is
+ * `null`. The deposit goes only if there was none: it is loaded once. The keys go in the order of the contract. `{}`
+ * means nothing to send.
+ * AC-15, AC-17, AC-18, AC-19 (rentals-be#29)
+ */
+export function patchOf(
+  opened: BookingFormValues,
+  values: BookingFormValues,
+  edit: BookingEdit,
+): UpdateBookingBody {
+  const patch: UpdateBookingBody = {};
+  const differs = (before: string, typed: string) =>
+    before.trim() !== typed.trim();
+  if (edit.wholeBooking) {
+    if (values.customerId !== opened.customerId) {
+      patch.customerId = values.customerId;
+    }
+    if (differs(opened.deliveryAt, values.deliveryAt)) {
+      patch.deliveryAt = instantOf(values.deliveryAt);
+    }
+  }
+  if (differs(opened.pickupAt, values.pickupAt)) {
+    patch.pickupAt = instantOf(values.pickupAt);
+  }
+  if (edit.holdExpiry && differs(opened.holdExpiresAt, values.holdExpiresAt)) {
+    patch.holdExpiresAt = instantOf(values.holdExpiresAt);
+  }
+  const address = orNull(values.address);
+  if (address !== orNull(opened.address)) patch.address = address;
+  const note = orNull(values.note);
+  if (note !== orNull(opened.note)) patch.note = note;
+  if (!edit.wholeBooking) return patch;
+
+  const eventDate = orNull(values.eventDate);
+  if (eventDate !== orNull(opened.eventDate)) patch.eventDate = eventDate;
+  const occasion = orNull(values.occasion);
+  if (occasion !== orNull(opened.occasion)) patch.occasion = occasion;
+  const freightCents = freightCentsOf(values.freight);
+  if (
+    differs(opened.freight, values.freight) &&
+    freightCents !== freightCentsOf(opened.freight)
+  ) {
+    patch.freightCents = mustParse(freightCents);
+  }
+  const openedTotal = opened.total ?? "";
+  if (values.total !== null && differs(openedTotal, values.total)) {
+    const totalCents = mustParse(parsePesos(values.total));
+    if (totalCents !== parsePesos(openedTotal)) patch.totalCents = totalCents;
+  }
+  const depositAmount = orNull(values.depositAmount);
+  const depositDate = orNull(values.depositDate);
+  const hadDeposit =
+    orNull(opened.depositAmount) !== null ||
+    orNull(opened.depositDate) !== null;
+  if (!hadDeposit && depositAmount !== null && depositDate !== null) {
+    patch.deposit = {
+      amountCents: mustParse(parsePesos(depositAmount)),
+      date: depositDate,
+    };
+  }
+  const lines = linesPatchOf(opened, values, edit);
+  if (lines !== undefined) patch.lines = lines;
+  return patch;
 }

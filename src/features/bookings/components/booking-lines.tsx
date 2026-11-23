@@ -33,19 +33,22 @@ function lineFailureOf(failure: FormFailure | null, itemId: string) {
  * period, in red when the quantity is more than that. It is only a help (INV-FE-01): `free` is what `GET /availability`
  * said for these dates, a line that was not asked for shows nothing, and the API checks the stock when it saves. The
  * quantity is read from the form while it is typed, and a text that does not read yet is never red. What the API said
- * against a line goes under it (AC-6, AC-7).
- * AC-1, AC-4 (rentals-be#29)
+ * against a line goes under it (AC-6, AC-7). In the edit of a confirmed booking the price of a line that was there is
+ * read only (`lockedPriceIds`): it was fixed when the booking was confirmed, and the API refuses to change it.
+ * AC-1, AC-4, AC-18 (rentals-be#29)
  */
 export function BookingLines({
   form,
   lines,
   free,
+  lockedPriceIds,
   failure,
   onAdd,
 }: {
   form: UseFormReturn<BookingFormValues>;
   lines: UseFieldArrayReturn<BookingFormValues, "lines">;
   free: Map<string, number>;
+  lockedPriceIds: ReadonlySet<string>;
   failure: FormFailure | null;
   onAdd: () => void;
 }) {
@@ -77,6 +80,7 @@ export function BookingLines({
             const red =
               available !== undefined && asked !== null && asked > available;
             const failureText = lineFailureOf(failure, line.itemId);
+            const locked = lockedPriceIds.has(line.itemId);
             return (
               <li key={line.id}>
                 <fieldset
@@ -112,10 +116,16 @@ export function BookingLines({
                       id={`${line.id}-price`}
                       label={texts.price}
                       inputMode="numeric"
+                      readOnly={locked}
                       error={errors.lines?.[index]?.price?.message}
                       {...register(`lines.${index}.price`)}
                     />
                   </div>
+                  {locked && (
+                    <p className="text-sm text-muted-foreground">
+                      {texts.priceFixed}
+                    </p>
+                  )}
                   {available !== undefined && (
                     <p
                       className={

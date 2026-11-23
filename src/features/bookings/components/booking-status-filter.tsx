@@ -17,7 +17,7 @@ const SELECT_CLASS =
 
 /**
  * A native select, like the one of the items filters (the phone gives its own picker). The status lives in the URL: each
- * change is a navigation, and the list asks the API again because its query key has the status.
+ * change is a navigation, and the list asks the API again because its query key has the status. It keeps `all`.
  */
 export function BookingStatusFilter({ filters }: { filters: BookingFilters }) {
   const router = useRouter();
@@ -30,7 +30,11 @@ export function BookingStatusFilter({ filters }: { filters: BookingFilters }) {
         value={filters.status ?? ""}
         onChange={(event) =>
           router.push(
-            bookingsHref(parseBookingFilters({ status: event.target.value })),
+            bookingsHref({
+              ...filters,
+              status: parseBookingFilters({ status: event.target.value })
+                .status,
+            }),
           )
         }
       >

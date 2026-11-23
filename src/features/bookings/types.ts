@@ -11,9 +11,13 @@ export type Booking =
 export type ActiveItem =
   components["schemas"]["ItemWithPrice"] | components["schemas"]["Item"];
 
-/** What the list asks the API for: `status` only when it is not `null`. */
+/**
+ * What the list asks the API for: `status` only when it is not `null`, and the start of today as `from` unless `all`
+ * (the list "from today" is the default, `?all=1` shows every booking).
+ */
 export type BookingFilters = {
   status: BookingStatus | null;
+  all: boolean;
 };
 
 /** The statuses a booking can be born with: a hold or confirmed, and no other (`POST /bookings`). */

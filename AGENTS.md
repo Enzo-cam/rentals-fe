@@ -48,8 +48,9 @@ src/
 │   │   ├── articulos/          lista y búsqueda; nuevo/, [id]/ (detalle), [id]/editar/ y cargar-lista/
 │   │   ├── clientes/           lista con búsqueda y "Ver más"; alta y edición en una hoja sobre la lista
 │   │   ├── disponibilidad/     período (desde, hasta) y búsqueda en la URL; qué hay libre por artículo
-│   │   └── reservas/           lista con el estado en la URL y "Ver más"; [id]/ (detalle, solo lectura); nueva/ (alta,
-│   │                           solo Dueño y Encargado)
+│   │   └── reservas/           lista desde hoy (con ?all=1, todas), con el estado en la URL, "Ver más" y la píldora "Nueva
+│   │                           reserva"; [id]/ (detalle con las acciones de estado y "Editar"); [id]/editar/ y nueva/
+│   │                           (edición y alta, solo Dueño y Encargado)
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
 │   ├── availability/           disponibilidad: período y búsqueda en la URL, lista con "Ver más" (se importa solo por index.ts):
@@ -60,9 +61,9 @@ src/
 │   │   └── components/         pantalla, formulario del período, fila, textos
 │   ├── bookings/               reservas: lista con filtro de estado, detalle con las acciones de estado (confirmar, entregar, registrar la
 │   │   │                       vuelta y cancelar), BookingStatusBadge (estado en píldora) y BookingRefList (la lista de reservas que nombra un 409); se importa solo por index.ts
-│   │   ├── api/                keys, requests (lecturas, artículos activos, el alta y las 4 acciones con Idempotency-Key), filtro de estado de la URL, fallas (no existe, transición, stock y baja, y las del formulario bajo cada campo), bookingActionsOf (botones por estado y rol), acceso por rol y booking-body (schema de forma, cuerpo del alta, suma sugerida y atajos de la seña: la excepción de INV-FE-01)
-│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0, use-booking-action y use-create-booking (useIdempotentMutation), use-active-items y use-booking-access
-│   │   └── components/         pantalla, filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API), BookingActions (la mutación vive acá y no en el diálogo), textos; el alta: NewBookingScreen (la mutación vive acá), BookingForm con sus líneas y su plata, los selectores de cliente y artículo (hojas hermanas del form) y la guardia BookingGate
+│   │   ├── api/                keys, requests (lecturas con `from` de hoy salvo all, artículos activos, el alta y las 4 acciones con Idempotency-Key, y la edición sin clave), filtros de la URL (estado y all), fallas (no existe, transición, stock y baja, y las del formulario bajo cada campo y los 409 de la edición), bookingActionsOf (botones por estado y rol), bookingEditOf (qué se edita en cada estado, edit.ts), acceso por rol y booking-body (schema de forma, cuerpo del alta, PATCH con solo lo cambiado, suma sugerida y atajos de la seña: la excepción de INV-FE-01)
+│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0, use-booking-action y use-create-booking (useIdempotentMutation), use-update-booking, use-active-items y use-booking-access
+│   │   └── components/         pantalla (píldora "Nueva reserva", "Ver todas" y "Desde hoy"), filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API: Total, Evento y el link "Editar"), BookingActions (la mutación vive acá y no en el diálogo), textos; alta y edición con un solo BookingForm (sus líneas y su plata, con ramas por estado): NewBookingScreen y EditBookingScreen (la mutación vive en cada pantalla), los selectores de cliente y artículo (hojas hermanas del form) y la guardia BookingGate
 │   ├── customers/              clientes: lista, búsqueda, alta y edición en una hoja, que también usa el alta de reservas
 │   │                           (CustomerSheet con onSaved; se importa solo por index.ts):
 │   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas (409 y 400) y acceso por rol
@@ -93,7 +94,8 @@ src/
 │   ├── bff-proxy.ts            el proxy: CSRF, límite de body, timeout, errores 5xx
 │   ├── proxy-rules.ts          reglas puras del proxy: listas de headers, CSRF, IP del cliente
 │   └── server-env.ts           lee API_URL, ORIGIN_SECRET y FRONT_ORIGIN
-├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog, badge, select, sheet, textarea) con la forma de la marca, y BrandMark
+├── components/ui/              shadcn/ui (card, button, input, label, alert-dialog, badge, select, sheet, textarea) con la forma de la marca
+│                               (buttonVariants fusiona las clases con cn, para que un Link con forma de botón quede igual), y BrandMark
                                 (la marca como SVG, docs/brand.md)
 └── lib/                        routes.ts (rutas y destino al entrar); pages.ts (las entradas de las páginas de una
                                 lista, sin repetir); format/ (money, whole-number y date-time: único lugar que da
