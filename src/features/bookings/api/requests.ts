@@ -1,15 +1,22 @@
 import { unwrap } from "@/api/api-failure";
 import { browserApi } from "@/api/browser-client";
 import type { paths } from "@/api/schema";
+import { startOfTodayInstant } from "@/lib/format/date-time";
 
 import type { BookingFilters } from "../types";
 import type { CreateBookingBody } from "./booking-body";
 
-/** The cursor belongs to the status it came with; `limit` is never sent, so the API picks the page size. */
+/**
+ * The cursor belongs to the status and the `from` it came with; `limit` is never sent, so the API picks the page size.
+ * Unless the list is `all`, `from` is the start of today, taken on each request and so also on "Ver más" (a chosen
+ * rule): a page asked across midnight can be answered with `invalid_cursor`, and a reload starts the list again.
+ * AC-12 (rentals-be#29)
+ */
 export function listBookings(filters: BookingFilters, cursor: string | null) {
   const query: NonNullable<paths["/bookings"]["get"]["parameters"]["query"]> =
     {};
   if (filters.status !== null) query.status = filters.status;
+  if (!filters.all) query.from = startOfTodayInstant();
   if (cursor !== null) query.cursor = cursor;
   return unwrap(browserApi.GET("/bookings", { params: { query } }));
 }
