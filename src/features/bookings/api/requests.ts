@@ -4,7 +4,7 @@ import type { paths } from "@/api/schema";
 import { startOfTodayInstant } from "@/lib/format/date-time";
 
 import type { BookingFilters } from "../types";
-import type { CreateBookingBody } from "./booking-body";
+import type { CreateBookingBody, UpdateBookingBody } from "./booking-body";
 
 /**
  * The cursor belongs to the status and the `from` it came with; `limit` is never sent, so the API picks the page size.
@@ -52,6 +52,18 @@ export function createBooking(body: CreateBookingBody, idempotencyKey: string) {
       params: { header: { "idempotency-key": idempotencyKey } },
       body,
     }),
+  );
+}
+
+/**
+ * The edit carries no `Idempotency-Key`: the contract has none for this endpoint, because the values are absolute and
+ * the same body twice leaves the booking as it was.
+ * @see src/api/schema.d.ts (`PATCH /bookings/{id}`)
+ * AC-15 (rentals-be#29)
+ */
+export function updateBooking(id: string, body: UpdateBookingBody) {
+  return unwrap(
+    browserApi.PATCH("/bookings/{id}", { params: { path: { id } }, body }),
   );
 }
 

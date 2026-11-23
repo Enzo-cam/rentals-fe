@@ -19,13 +19,16 @@ import { BOOKING_FORM_TEXTS, DEPOSIT_SHORTCUTS } from "./texts";
  * types, it is what they typed, and what they erase stays erased (INV-FE-06: no effect copies the sum into the field).
  * The shortcuts of the deposit write the share of the total as it is shown, in whole pesos, and the person can still
  * change it. All of it is a help, the exception of INV-FE-01 that the founder decided: the balance, the stock and the
- * dates are the API's.
- * AC-1 (rentals-be#29)
+ * dates are the API's. In the edit the total is the stored one and the sum stays as the reference under it. A deposit
+ * that is already loaded is read only and has no shortcuts: it is loaded once (`depositSet`).
+ * AC-1, AC-17, AC-18 (rentals-be#29)
  */
 export function BookingMoney({
   form,
+  depositSet,
 }: {
   form: UseFormReturn<BookingFormValues>;
+  depositSet: boolean;
 }) {
   const {
     control,
@@ -81,28 +84,32 @@ export function BookingMoney({
         id="booking-deposit"
         label={texts.deposit}
         inputMode="numeric"
+        readOnly={depositSet}
         error={errors.depositAmount?.message}
         {...register("depositAmount")}
         note={
-          <div className="flex gap-2">
-            {DEPOSIT_SHORTCUTS.map((percent) => (
-              <Button
-                key={percent}
-                type="button"
-                variant="outline"
-                disabled={!totalCents}
-                onClick={() => writeShortcut(percent)}
-              >
-                {`${percent} %`}
-              </Button>
-            ))}
-          </div>
+          depositSet ? undefined : (
+            <div className="flex gap-2">
+              {DEPOSIT_SHORTCUTS.map((percent) => (
+                <Button
+                  key={percent}
+                  type="button"
+                  variant="outline"
+                  disabled={!totalCents}
+                  onClick={() => writeShortcut(percent)}
+                >
+                  {`${percent} %`}
+                </Button>
+              ))}
+            </div>
+          )
         }
       />
       <TextField
         id="booking-deposit-date"
         label={texts.depositDate}
         type="date"
+        readOnly={depositSet}
         error={errors.depositDate?.message}
         {...register("depositDate")}
       />

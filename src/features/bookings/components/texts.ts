@@ -45,6 +45,7 @@ export const BOOKING_DETAIL_TEXTS = {
   cancelled: "Cancelada",
   address: "Dirección",
   note: "Nota",
+  edit: "Editar",
   event: "Evento",
   freight: "Flete",
   total: "Total",
@@ -84,6 +85,8 @@ export const BOOKING_FORM_TEXTS = {
   note: "Nota",
   save: "Guardar reserva",
   saving: "Guardando…",
+  unchanged: "No cambiaste nada.",
+  priceFixed: "El precio quedó fijo al confirmar.",
 };
 
 /** The shortcuts of the deposit, as a share of the total. */
@@ -101,6 +104,12 @@ export const BOOKING_FORM_FAILURES = {
     "El bloqueo tiene que vencer después de ahora y no después de la entrega.",
   keyReused: "La reserva ya se había guardado con los datos anteriores.",
   seeBookings: "Ver las reservas",
+  priceLocked:
+    "El precio de las líneas que ya estaban quedó fijo al confirmar la reserva. Dejalo como estaba.",
+  notEditable:
+    "Esta reserva cambió mientras tanto y ya no admite este cambio. Mirá cómo quedó.",
+  depositSet:
+    "La seña ya estaba cargada y no se puede cambiar. Mirá cómo quedó la reserva.",
 };
 
 /** Screen texts of the API codes for the booking form. */

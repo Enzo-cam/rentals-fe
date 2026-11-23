@@ -10,8 +10,10 @@ import { formatCents } from "@/lib/format/money";
 import { formatWholeNumber } from "@/lib/format/whole-number";
 import { ROUTES } from "@/lib/routes";
 
+import { bookingEditOf } from "../api/edit";
 import { isBookingMissing } from "../api/failures";
 import { useBooking } from "../hooks/use-booking";
+import { useBookingAccess } from "../hooks/use-booking-access";
 import type { Booking } from "../types";
 import { BookingActions } from "./booking-actions";
 import { BookingStatusBadge } from "./booking-status-badge";
@@ -149,12 +151,23 @@ function BookingBody({ booking }: { booking: Booking }) {
 /** A dead session is not an error here: the session providers are already leaving the screen. */
 export function BookingDetail({ id }: { id: string }) {
   const booking = useBooking(id);
+  const access = useBookingAccess();
   const leaving = isLeavingSession(failureOf(booking.error));
 
   return (
     <div className="flex flex-col gap-4">
       {booking.data && <BookingBody booking={booking.data} />}
       {booking.data && <BookingActions booking={booking.data} />}
+      {booking.data &&
+        access.canManage &&
+        bookingEditOf(booking.data.status) !== null && (
+          <Link
+            href={ROUTES.editBooking(id)}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            {BOOKING_DETAIL_TEXTS.edit}
+          </Link>
+        )}
       {booking.isPending && <p role="status">{BOOKING_DETAIL_TEXTS.loading}</p>}
       {booking.isError && isBookingMissing(booking.error) && (
         <p role="alert">{BOOKING_DETAIL_TEXTS.missing}</p>
