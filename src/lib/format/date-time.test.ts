@@ -5,6 +5,7 @@ import {
   formatDateTime,
   formatDay,
   formatTime,
+  startOfTodayInstant,
   toApiInstant,
   toLocalInput,
 } from "./date-time";
@@ -138,5 +139,25 @@ describe("toLocalInput", () => {
   it("gives back what it got when the instant is not valid or has no offset", () => {
     expect(toLocalInput("basura")).toBe("basura");
     expect(toLocalInput("2026-11-13T08:00")).toBe("2026-11-13T08:00");
+  });
+});
+
+describe("startOfTodayInstant", () => {
+  it("is midnight of the current day in Argentina, with the offset", () => {
+    expect(startOfTodayInstant(new Date("2026-11-01T12:00:00Z"))).toBe(
+      "2026-11-01T00:00:00-03:00",
+    );
+    expect(startOfTodayInstant(new Date("2026-11-01T03:00:00Z"))).toBe(
+      "2026-11-01T00:00:00-03:00",
+    );
+  });
+
+  it("is still the previous day at 02:00Z, because Argentina is at 23:00", () => {
+    expect(startOfTodayInstant(new Date("2026-11-01T02:00:00Z"))).toBe(
+      "2026-10-31T00:00:00-03:00",
+    );
+    expect(startOfTodayInstant(new Date("2027-01-01T01:00:00Z"))).toBe(
+      "2026-12-31T00:00:00-03:00",
+    );
   });
 });

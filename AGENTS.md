@@ -48,19 +48,23 @@ src/
 │   │   ├── articulos/          lista y búsqueda; nuevo/, [id]/ (detalle), [id]/editar/ y cargar-lista/
 │   │   ├── clientes/           lista con búsqueda y "Ver más"; alta y edición en una hoja sobre la lista
 │   │   ├── disponibilidad/     período (desde, hasta) y búsqueda en la URL; qué hay libre por artículo
-│   │   └── reservas/           lista con el estado en la URL y "Ver más"; [id]/ (detalle, solo lectura)
+│   │   └── reservas/           lista con el estado en la URL y "Ver más"; [id]/ (detalle, solo lectura); nueva/ (alta,
+│   │                           solo Dueño y Encargado)
 │   └── api/[...path]/route.ts  proxy BFF (ADR-0001)
 ├── features/
 │   ├── availability/           disponibilidad: período y búsqueda en la URL, lista con "Ver más" (se importa solo por index.ts):
-│   │   ├── api/                keys, requests (GET /availability) y filtros de la URL (fechas locales, sin offset)
-│   │   ├── hooks/              use-availability (pide solo con el período completo, staleTime 0)
+│   │   ├── api/                keys, requests (GET /availability, y freeUnitsOf con `ids` para la ayuda del formulario de
+│   │   │                       reservas) y filtros de la URL (fechas locales, sin offset)
+│   │   ├── hooks/              use-availability (pide solo con el período completo, staleTime 0) y use-free-units (los
+│   │   │                       libres de unos artículos; sin fechas válidas no pide)
 │   │   └── components/         pantalla, formulario del período, fila, textos
 │   ├── bookings/               reservas: lista con filtro de estado, detalle con las acciones de estado (confirmar, entregar, registrar la
 │   │   │                       vuelta y cancelar), BookingStatusBadge (estado en píldora) y BookingRefList (la lista de reservas que nombra un 409); se importa solo por index.ts
-│   │   ├── api/                keys, requests (lecturas y las 4 acciones con Idempotency-Key), filtro de estado de la URL, fallas (no existe, transición, stock y baja) y bookingActionsOf (botones por estado y rol)
-│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0, y use-booking-action (useIdempotentMutation)
-│   │   └── components/         pantalla, filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API), BookingActions (la mutación vive acá y no en el diálogo), textos
-│   ├── customers/              clientes: lista, búsqueda, alta y edición en una hoja (se importa solo por index.ts):
+│   │   ├── api/                keys, requests (lecturas, artículos activos, el alta y las 4 acciones con Idempotency-Key), filtro de estado de la URL, fallas (no existe, transición, stock y baja, y las del formulario bajo cada campo), bookingActionsOf (botones por estado y rol), acceso por rol y booking-body (schema de forma, cuerpo del alta, suma sugerida y atajos de la seña: la excepción de INV-FE-01)
+│   │   ├── hooks/              use-bookings (infinita) y use-booking, ambos con staleTime 0, use-booking-action y use-create-booking (useIdempotentMutation), use-active-items y use-booking-access
+│   │   └── components/         pantalla, filtro de estado, fila, detalle (lo que muestra depende de los campos que manda la API), BookingActions (la mutación vive acá y no en el diálogo), textos; el alta: NewBookingScreen (la mutación vive acá), BookingForm con sus líneas y su plata, los selectores de cliente y artículo (hojas hermanas del form) y la guardia BookingGate
+│   ├── customers/              clientes: lista, búsqueda, alta y edición en una hoja, que también usa el alta de reservas
+│   │                           (CustomerSheet con onSaved; se importa solo por index.ts):
 │   │   ├── api/                keys, requests, filtros de la URL, cuerpos de alta y edición, fallas (409 y 400) y acceso por rol
 │   │   ├── hooks/              use-customers, use-create-customer, use-update-customer y use-customer-access
 │   │   └── components/         pantalla, fila, búsqueda, hoja, formulario, textos y la guardia CustomersGate

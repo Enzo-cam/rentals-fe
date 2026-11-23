@@ -3,6 +3,7 @@ import { browserApi } from "@/api/browser-client";
 import type { paths } from "@/api/schema";
 
 import type { BookingFilters } from "../types";
+import type { CreateBookingBody } from "./booking-body";
 
 /** The cursor belongs to the status it came with; `limit` is never sent, so the API picks the page size. */
 export function listBookings(filters: BookingFilters, cursor: string | null) {
@@ -15,6 +16,36 @@ export function listBookings(filters: BookingFilters, cursor: string | null) {
 
 export function getBooking(id: string) {
   return unwrap(browserApi.GET("/bookings/{id}", { params: { path: { id } } }));
+}
+
+/**
+ * The active items to pick from, each with the list price that fills its line. It is a thin read of `GET /items` of its
+ * own, and the items feature does not export `useItems`, because items already imports this feature
+ * (`archive-actions`) and the cycle is an error of `no-circular` in dependency-cruiser. The cursor belongs to the `q`
+ * it came with; `limit` is never sent, so the API picks the page size.
+ * AC-1 (rentals-be#29)
+ */
+export function listActiveItems(q: string | null, cursor: string | null) {
+  const query: NonNullable<paths["/items"]["get"]["parameters"]["query"]> = {
+    status: "active",
+  };
+  if (q !== null) query.q = q;
+  if (cursor !== null) query.cursor = cursor;
+  return unwrap(browserApi.GET("/items", { params: { query } }));
+}
+
+/**
+ * The key of the intent goes in `Idempotency-Key` (a UUID, required): the same key with the same body answers the
+ * booking that was saved, and with another body a 422 `idempotency_key_reused`. A rejected save does not keep the key.
+ * AC-1 (rentals-be#29)
+ */
+export function createBooking(body: CreateBookingBody, idempotencyKey: string) {
+  return unwrap(
+    browserApi.POST("/bookings", {
+      params: { header: { "idempotency-key": idempotencyKey } },
+      body,
+    }),
+  );
 }
 
 /**

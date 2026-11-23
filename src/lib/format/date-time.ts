@@ -166,3 +166,12 @@ export function toLocalInput(instant: string): string {
   const parts = localPartsOf(date);
   return `${parts.year}-${two(parts.month)}-${two(parts.day)}T${timeText(parts)}`;
 }
+
+/**
+ * Midnight of the current day in the business zone, as the instant that `GET /bookings?from` takes. The day is the one
+ * of Argentina and not the one of the browser or of UTC: at 02:00Z it is still the evening of the day before.
+ */
+export function startOfTodayInstant(now: Date = new Date()): string {
+  const { year, month, day } = localPartsOf(now);
+  return `${year}-${two(month)}-${two(day)}T00:00:00${BUSINESS_UTC_OFFSET}`;
+}

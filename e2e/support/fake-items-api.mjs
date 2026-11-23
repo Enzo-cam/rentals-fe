@@ -104,5 +104,13 @@ export function createItemsApi({ accessOf, frontOrigin }) {
     return fail(res, 404, "not_found");
   }
 
-  return { handle, reset };
+  /** The item of the business, with its list price, as the bookings fake needs it for a line. */
+  function find(id, businessId) {
+    const found = store.find(
+      (item) => item.id === id && item.businessId === businessId,
+    );
+    return found ? withoutBusiness(found) : null;
+  }
+
+  return { handle, reset, find };
 }

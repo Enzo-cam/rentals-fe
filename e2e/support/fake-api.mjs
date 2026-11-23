@@ -33,6 +33,8 @@ const availabilityApi = createAvailabilityApi({
 
 const bookingsApi = createBookingsApi({
   accessOf: sessionApi.accessOf,
+  customerOf: customersApi.find,
+  itemOf: itemsApi.find,
 });
 
 let healthMode = "ok";

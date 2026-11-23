@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 const FIXTURES = JSON.parse(
@@ -62,10 +63,11 @@ function withoutBusiness(booking) {
   );
 }
 
-/** What the API sends to the roles that cannot view prices (the crew): no line prices, no freight, no deposit. */
+/** What the API sends to the roles that cannot view prices (the crew): no line prices, no freight, no total, no deposit. */
 function withoutPrices(booking) {
   const shown = { ...booking };
   delete shown.freightCents;
+  delete shown.totalCents;
   delete shown.deposit;
   shown.lines = booking.lines.map((line) => {
     const bare = { ...line };
@@ -83,9 +85,15 @@ function withoutPrices(booking) {
  * (confirm, deliver, return, cancel) move the booking in memory and the next read shows it; they check the content
  * type, the key (a UUID) and the role, but not the stock, the replay of a key or the hold expiry: the API owns those.
  * `accessOf(req)` is the one of the session fake: the same 401, 403 and 404, and every role can read, also when the
- * business is read only.
+ * business is read only. `POST /bookings` and `PATCH /bookings/{id}` (contract 7190bdb) store what they are sent: the
+ * total is `totalCents` or the sum of the lines plus the freight, the balance is the total minus the deposit, a line
+ * without `priceCents` takes the list price of the item, and the PATCH applies the rules of the status (delivered:
+ * only pickup, address and note; confirmed: no hold expiry and no price change on a line that was there; returned and
+ * cancelled: nothing; the deposit only once). The stock, the dates, the amounts and the replay of a key are the API's:
+ * a test that needs a 400, a 409 on stock or a 422 gets it from an override. `customerOf` and `itemOf` read the
+ * customers and items fakes.
  */
-export function createBookingsApi({ accessOf }) {
+export function createBookingsApi({ accessOf, customerOf, itemOf }) {
   let store;
   function reset() {
     store = structuredClone(FIXTURES.bookings);
@@ -126,7 +134,130 @@ export function createBookingsApi({ accessOf }) {
     return json(res, 200, shownTo(access, found));
   }
 
-  function handle(req, res, path) {
+  /** The checks of the two writes: content type, read only, role (the crew does not write bookings) and the body. */
+  function writeGuard(req, res, access) {
+    if (!JSON_MEDIA_TYPE.test(req.headers["content-type"] ?? "")) {
+      return fail(res, 415, "unsupported_media_type");
+    }
+    if (access.readOnly) return fail(res, 403, "read_only");
+    if (access.role === "crew") return fail(res, 403, "forbidden");
+    return null;
+  }
+
+  function priced(booking) {
+    booking.balanceDueCents =
+      booking.totalCents - (booking.deposit?.amountCents ?? 0);
+    return booking;
+  }
+
+  function create(req, res, access, rawBody) {
+    const refused = writeGuard(req, res, access);
+    if (refused) return refused;
+    if (!UUID.test(req.headers["idempotency-key"] ?? "")) {
+      return fail(res, 400, "invalid_request");
+    }
+    const body = JSON.parse(rawBody);
+    const customer = customerOf(body.customerId, access.businessId);
+    if (!customer) return fail(res, 400, "invalid_request");
+    const lines = [];
+    for (const sent of body.lines ?? []) {
+      const item = itemOf(sent.itemId, access.businessId);
+      if (!item) return fail(res, 400, "invalid_request");
+      lines.push({
+        id: randomUUID(),
+        itemId: item.id,
+        itemName: item.name,
+        quantity: sent.quantity,
+        priceCents: sent.priceCents ?? item.priceCents,
+      });
+    }
+    const freightCents = body.freightCents ?? 0;
+    const sum = lines.reduce(
+      (total, line) => total + line.quantity * line.priceCents,
+      freightCents,
+    );
+    const created = priced({
+      businessId: access.businessId,
+      id: randomUUID(),
+      status: body.status,
+      holdExpiresAt: body.status === "hold" ? body.holdExpiresAt : null,
+      holdExpired: false,
+      customer,
+      deliveryAt: body.deliveryAt,
+      pickupAt: body.pickupAt,
+      address: body.address ?? null,
+      note: body.note ?? null,
+      eventDate: body.eventDate ?? null,
+      occasion: body.occasion ?? null,
+      deliveredAt: null,
+      returnRecordedAt: null,
+      cancelledAt: null,
+      createdAt: new Date().toISOString(),
+      lines,
+      freightCents,
+      totalCents: body.totalCents ?? sum,
+      deposit: body.deposit ?? null,
+    });
+    store.push(created);
+    return json(res, 201, shownTo(access, created));
+  }
+
+  function edit(req, res, access, id, rawBody) {
+    const refused = writeGuard(req, res, access);
+    if (refused) return refused;
+    const found = store.find(
+      (booking) =>
+        booking.id === id && booking.businessId === access.businessId,
+    );
+    if (!found) return fail(res, 404, "booking_not_found");
+    const body = JSON.parse(rawBody);
+    const locked =
+      ["returned", "cancelled"].includes(found.status) ||
+      (found.status === "delivered" &&
+        Object.keys(body).some(
+          (key) => !["pickupAt", "address", "note"].includes(key),
+        )) ||
+      (found.status === "confirmed" && "holdExpiresAt" in body);
+    if (locked) return fail(res, 409, "booking_not_editable");
+    if (body.deposit && found.deposit) {
+      return fail(res, 409, "deposit_already_set");
+    }
+    let lines = found.lines;
+    if (body.lines) {
+      lines = [];
+      for (const sent of body.lines) {
+        const kept = found.lines.find((line) => line.itemId === sent.itemId);
+        const item = kept ?? itemOf(sent.itemId, access.businessId);
+        if (!item) return fail(res, 400, "invalid_request");
+        if (
+          kept &&
+          found.status === "confirmed" &&
+          sent.priceCents !== undefined &&
+          sent.priceCents !== kept.priceCents
+        ) {
+          return fail(res, 409, "line_price_locked");
+        }
+        lines.push({
+          id: kept?.id ?? randomUUID(),
+          itemId: sent.itemId,
+          itemName: kept?.itemName ?? item.name,
+          quantity: sent.quantity,
+          priceCents: sent.priceCents ?? kept?.priceCents ?? item.priceCents,
+        });
+      }
+    }
+    const scalars = { ...body };
+    delete scalars.customerId;
+    delete scalars.lines;
+    Object.assign(found, scalars, { lines });
+    const { customerId } = body;
+    if (customerId !== undefined) {
+      found.customer = customerOf(customerId, access.businessId);
+    }
+    return json(res, 200, shownTo(access, priced(found)));
+  }
+
+  function handle(req, res, path, rawBody) {
     const access = accessOf(req);
     if (access.failure)
       return fail(res, access.failure.status, access.failure.error);
@@ -154,6 +285,13 @@ export function createBookingsApi({ accessOf }) {
       const found = own.find((booking) => booking.id === id);
       if (!found) return fail(res, 404, "booking_not_found");
       return json(res, 200, shownTo(access, found));
+    }
+
+    if (req.method === "POST" && path === "/bookings") {
+      return create(req, res, access, rawBody);
+    }
+    if (req.method === "PATCH" && id !== undefined) {
+      return edit(req, res, access, id, rawBody);
     }
 
     const action = path.match(

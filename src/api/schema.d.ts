@@ -1884,7 +1884,7 @@ export interface paths {
         };
         /**
          * List the bookings of the business
-         * @description Ordered by delivery date and id, every status unless status is given. Keyset pagination: repeat the same URL with cursor=nextCursor and the same status. A hold past its expiry is listed with holdExpired true. Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.
+         * @description Ordered by delivery date and id, every status unless status is given. from keeps only the bookings that are not finished: pickupAt at or after it, or delivered and still out even if the pickup passed (the list "from today" sends the start of the day), combined with status. Keyset pagination: repeat the same URL with cursor=nextCursor and the same status and from. A hold past its expiry is listed with holdExpired true. Roles without view_prices get Booking: no line prices, freight, total or deposit, but with the note, the event date, the occasion, the customer and balanceDueCents. Allowed for every role and also when the business is read only.
          */
         get: {
             parameters: {
@@ -1892,6 +1892,8 @@ export interface paths {
                     limit?: number;
                     cursor?: string;
                     status?: "hold" | "confirmed" | "delivered" | "returned" | "cancelled";
+                    /** @description Only the bookings that are not finished: those whose pickupAt is at or after this instant, plus the delivered ones still out even if their pickup already passed (a confirmed, returned or cancelled booking picked up before it is left out). An ISO 8601 instant with an offset, for example 2026-11-13T00:00:00-03:00; URL-encode a + offset as %2B. */
+                    from?: string;
                 };
                 header?: never;
                 path?: never;
@@ -1908,7 +1910,7 @@ export interface paths {
                         "application/json": components["schemas"]["BookingPageWithPrices"] | components["schemas"]["BookingPage"];
                     };
                 };
-                /** @description invalid_request or invalid_cursor: a query parameter is not valid, or the cursor does not belong to this list and this status. */
+                /** @description invalid_request or invalid_cursor: a query parameter is not valid (from included: not an instant with an offset, or outside 2000-2099), or the cursor does not belong to this list, this status and this from. */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -1958,7 +1960,7 @@ export interface paths {
         put?: never;
         /**
          * Create a booking
-         * @description Born as a hold or confirmed, once per Idempotency-Key (a UUID, required): the same key with the same body returns the same booking, the same key with another body is 422 idempotency_key_reused, and a key is good for 72 hours. A hold needs holdExpiresAt, after now and not after deliveryAt; a confirmed booking must not have one. deliveryAt may be in the past (it is already out), pickupAt must be after deliveryAt and after now. Each line fixes its price: priceCents if sent, else the item list price at this moment. freightCents is 0 by default and deposit is optional. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices (the roles that create always see prices).
+         * @description Born as a hold or confirmed, once per Idempotency-Key (a UUID, required): the same key with the same body returns the same booking, the same key with another body is 422 idempotency_key_reused, and a key is good for 72 hours. A hold needs holdExpiresAt, after now and not after deliveryAt; a confirmed booking must not have one. deliveryAt may be in the past (it is already out), pickupAt must be after deliveryAt and after now. Each line fixes its price: priceCents if sent, else the item list price at this moment. freightCents is 0 by default and deposit is optional. totalCents is the total the user types (up to the same bound as freightCents); without it the booking stores Σ(quantity × line price) + freightCents of this moment, and either way balanceDueCents = totalCents − deposit. eventDate (a calendar date) and occasion (up to 120 characters) are optional too: the day and the reason of the party, which is not the delivery day. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices (the roles that create always see prices).
          */
         post: {
             parameters: {
@@ -1985,8 +1987,13 @@ export interface paths {
                         holdExpiresAt?: string;
                         address?: string;
                         note?: string;
+                        /** Format: date */
+                        eventDate?: string;
+                        occasion?: string;
                         /** @default 0 */
                         freightCents?: number;
+                        /** @description The total the business charges, typed by the user (owner or manager): it may differ from Σ(quantity × line price) + freightCents. balanceDueCents = totalCents − deposit. Optional: without it the booking stores the sum of its lines and freight at this moment. */
+                        totalCents?: number;
                         deposit?: {
                             amountCents: number;
                             /** Format: date */
@@ -2109,7 +2116,7 @@ export interface paths {
         };
         /**
          * Read a booking
-         * @description Roles without view_prices get Booking: no line prices, freight or deposit, but with the note, the customer and balanceDueCents. Allowed for every role and also when the business is read only.
+         * @description Roles without view_prices get Booking: no line prices, freight, total or deposit, but with the note, the event date, the occasion, the customer and balanceDueCents. Allowed for every role and also when the business is read only.
          */
         get: {
             parameters: {
@@ -2185,7 +2192,7 @@ export interface paths {
         head?: never;
         /**
          * Edit a booking
-         * @description Only the keys sent change, and sending what the booking already has changes nothing (200, nothing written); the values are absolute, so there is no Idempotency-Key. lines is the complete list by item: an item that is not in it is removed (its line is kept with removed_at), a new one takes priceCents or the list price of this moment, and one that stays keeps its price. address and note accept null to clear them. What can change depends on the status: a hold, everything; a confirmed booking, everything but holdExpiresAt and without changing the price of an existing line (line_price_locked); a delivered one, only pickupAt, address and note; a returned or cancelled one, nothing (booking_not_editable). The deposit is loaded once (deposit_already_set for another amount or date). pickupAt is compared with now only if it changes, and holdExpiresAt too (after now and not after deliveryAt). A change that makes an item hold more units, in other dates or quantities, or moves the expiry of an expired hold, is checked against the stock; one that does not raise the occupation is accepted even if an overdue booking already exceeds the stock. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.
+         * @description Only the keys sent change, and sending what the booking already has changes nothing (200, nothing written); the values are absolute, so there is no Idempotency-Key. lines is the complete list by item: an item that is not in it is removed (its line is kept with removed_at), a new one takes priceCents or the list price of this moment, and one that stays keeps its price. totalCents replaces the stored total; without it the total stays as it was, even when lines or freightCents change. address, note, eventDate and occasion accept null to clear them. What can change depends on the status: a hold, everything; a confirmed booking, everything but holdExpiresAt and without changing the price of an existing line (line_price_locked); a delivered one, only pickupAt, address and note (any other key, totalCents and freightCents included, is booking_not_editable); a returned or cancelled one, nothing (booking_not_editable). The deposit is loaded once (deposit_already_set for another amount or date). pickupAt is compared with now only if it changes, and holdExpiresAt too (after now and not after deliveryAt). A change that makes an item hold more units, in other dates or quantities, or moves the expiry of an expired hold, is checked against the stock; one that does not raise the occupation is accepted even if an overdue booking already exceeds the stock. Needs manage_bookings and a business that is not read only. Answers BookingWithPrices.
          */
         patch: {
             parameters: {
@@ -2209,7 +2216,12 @@ export interface paths {
                         holdExpiresAt?: string;
                         address?: string | null;
                         note?: string | null;
+                        /** Format: date */
+                        eventDate?: string | null;
+                        occasion?: string | null;
                         freightCents?: number;
+                        /** @description The total the business charges, typed by the user (owner or manager): it may differ from Σ(quantity × line price) + freightCents. balanceDueCents = totalCents − deposit. Without it the stored total stays, even if lines or freightCents change. */
+                        totalCents?: number;
                         deposit?: {
                             amountCents: number;
                             /** Format: date */
@@ -2804,6 +2816,368 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weekend-sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the weekend sheet
+         * @description What goes out and what comes back each day, with the detail of each booking. from and to are required calendar dates (YYYY-MM-DD) in Argentina time, to included, to not before from and at most 7 days in all. days has an entry for every date of the range, in order, also the empty ones: deliveries are the bookings whose deliveryAt falls on that day and pickups the ones whose pickupAt does, each list by that instant and id (a booking whose delivery and pickup are both in the range is in both). overdue is the overdue pickups as the stock rule defines them: confirmed or delivered bookings (no return recorded) whose pickup day has already ended at the server clock, and whose pickupAt is before from so they are not repeated in days, by pickupAt and id. They still hold their units, also a confirmed one that was never marked delivered, so the owner can fix its status. A pickup before from whose day has not ended yet is in neither days nor overdue. overdue is bounded only by the data of the business itself. Every status is listed except cancelled and a hold past its expiry; each booking keeps its status (hold, confirmed, delivered or returned). No pagination: the result is bounded by the range. Roles without view_prices get Booking: no line prices, freight, total or deposit, but with the address, the note, the customer and balanceDueCents (the stored total minus the deposit). Allowed for every role and also when the business is read only.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The sheet. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WeekendSheetWithPrices"] | components["schemas"]["WeekendSheet"];
+                    };
+                };
+                /** @description invalid_request: from or to is missing or is not a calendar date, to is before from, or the range is more than 7 days. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected: the session has no business yet. */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found: the user has no active membership in the business of the session. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/bookings/{id}/quote-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Share a booking with its customer
+         * @description Answers the active quote link of the booking, or creates one with a new token: there is one active link per booking and sharing again answers the same url and createdAt. showLinePrices decides whether the customer sees the price of each line and the freight; the total and the deposit are always shown. Sending the flag the active link already has writes nothing and works while the business is read only; changing it or creating the link needs a business that is not read only. A delivered or returned booking is shared as it is; a cancelled one is 409 booking_cancelled. No Idempotency-Key: the result does not depend on how many times the request arrives. Needs manage_quote_links.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        showLinePrices: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description The active link. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["QuoteLink"];
+                    };
+                };
+                /** @description invalid_request: the id is not a UUID, or the body is not exactly { showLinePrices: boolean }. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage quote links) or read_only (only when sharing: the subscription is not live and the request would write). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description booking_cancelled: a cancelled booking is not shared, and nothing changes. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error: nothing was written. */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        /**
+         * Revoke the quote link of a booking
+         * @description Sets revoked_at on the active link: its token answers 404 from now on and sharing again gives a new one. Without an active link it answers 204 and writes nothing. Like every mutation it requires Content-Type: application/json even though it has no body. Needs manage_quote_links; it works while the business is read only, since revoking only shrinks what is exposed.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Revoked, or there was no active link. No body. */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description invalid_request: the id is not a UUID. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unauthenticated: no valid __Host-session cookie. */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_selected, origin_not_allowed (the Origin header is not FRONT_ORIGIN), forbidden (the role cannot manage quote links) or read_only (only when sharing: the subscription is not live and the request would write). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description business_not_found or booking_not_found: the user has no active membership in the business, or the business has no booking with that id. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description payload_too_large: the body is over 16 KiB. */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description unsupported_media_type: the Content-Type is not application/json. */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error: nothing was written. */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/quotes/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Open a shared quote
+         * @description For the customer, without a session: the booking as the business shared it. PublicQuoteWithPrices when the link shows line prices (with priceCents per line and freightCents), PublicQuote when it does not; both have the total and the deposit. totalCents is the total stored in the booking, the one the business typed: it may differ from the lines plus freight, and the lines keep their own prices. allAvailable is true when every line fits now in the booking period under the same rule that accepts a booking; a hold is quoted as if it were confirmed now, and one whose pickup already passed is not available. Works while the business is read only. Every answer has Cache-Control: no-store and X-Robots-Tag: noindex. Counts 30 answers 404 per IP (the first X-Forwarded-For value) in 15 minutes; a 200 does not count.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The quote. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicQuoteWithPrices"] | components["schemas"]["PublicQuote"];
+                    };
+                };
+                /** @description quote_not_found: the token is unknown, malformed or revoked, or the booking was cancelled. The same answer for all. */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description too_many_attempts: too many 404 answers from this IP in the window. */
+                429: {
+                    headers: {
+                        /** @description Seconds until the window ends. */
+                        "Retry-After": string;
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description internal_error */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3879,6 +4253,9 @@ export interface components {
             pickupAt: string;
             address: string | null;
             note: string | null;
+            /** Format: date */
+            eventDate: string | null;
+            occasion: string | null;
             /** Format: date-time */
             deliveredAt: string | null;
             /** Format: date-time */
@@ -3887,9 +4264,12 @@ export interface components {
             cancelledAt: string | null;
             /** Format: date-time */
             createdAt: string;
+            /** @description What is left to collect: the stored total minus the deposit (totalCents − deposit.amountCents). Negative when the deposit is over the total. Every role gets it. */
             balanceDueCents: number;
             lines: components["schemas"]["BookingLineWithPrice"][];
             freightCents: number;
+            /** @description The total of the booking, the one that is charged: typed by the user, so it may differ from Σ(quantity × priceCents) + freightCents. When the booking was created without it, it is that sum at that moment. It changes only when a PATCH sends it. balanceDueCents = totalCents − deposit. */
+            totalCents: number;
             deposit: {
                 amountCents: number;
                 /** Format: date */
@@ -3920,6 +4300,9 @@ export interface components {
             pickupAt: string;
             address: string | null;
             note: string | null;
+            /** Format: date */
+            eventDate: string | null;
+            occasion: string | null;
             /** Format: date-time */
             deliveredAt: string | null;
             /** Format: date-time */
@@ -3928,6 +4311,7 @@ export interface components {
             cancelledAt: string | null;
             /** Format: date-time */
             createdAt: string;
+            /** @description What is left to collect: the stored total minus the deposit (totalCents − deposit.amountCents). Negative when the deposit is over the total. Every role gets it. */
             balanceDueCents: number;
             lines: components["schemas"]["BookingLine"][];
         };
@@ -3969,6 +4353,83 @@ export interface components {
         BookingPage: {
             items: components["schemas"]["Booking"][];
             nextCursor: string | null;
+        };
+        WeekendSheetWithPrices: {
+            days: components["schemas"]["WeekendSheetDayWithPrices"][];
+            overdue: components["schemas"]["BookingWithPrices"][];
+        };
+        WeekendSheetDayWithPrices: {
+            /** Format: date */
+            date: string;
+            deliveries: components["schemas"]["BookingWithPrices"][];
+            pickups: components["schemas"]["BookingWithPrices"][];
+        };
+        WeekendSheet: {
+            days: components["schemas"]["WeekendSheetDay"][];
+            overdue: components["schemas"]["Booking"][];
+        };
+        WeekendSheetDay: {
+            /** Format: date */
+            date: string;
+            deliveries: components["schemas"]["Booking"][];
+            pickups: components["schemas"]["Booking"][];
+        };
+        QuoteLink: {
+            /** Format: uri */
+            url: string;
+            showLinePrices: boolean;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        PublicQuoteWithPrices: {
+            businessName: string;
+            customerName: string;
+            /** Format: date */
+            eventDate: string | null;
+            occasion: string | null;
+            /** Format: date-time */
+            deliveryAt: string;
+            /** Format: date-time */
+            pickupAt: string;
+            /** @description The total stored in the booking, typed by the business: it may differ from the lines plus freight. */
+            totalCents: number;
+            deposit: {
+                amountCents: number;
+                /** Format: date */
+                date: string;
+            } | null;
+            allAvailable: boolean;
+            lines: components["schemas"]["PublicQuoteLineWithPrice"][];
+            freightCents: number;
+        };
+        PublicQuoteLineWithPrice: {
+            itemName: string;
+            quantity: number;
+            priceCents: number;
+        };
+        PublicQuote: {
+            businessName: string;
+            customerName: string;
+            /** Format: date */
+            eventDate: string | null;
+            occasion: string | null;
+            /** Format: date-time */
+            deliveryAt: string;
+            /** Format: date-time */
+            pickupAt: string;
+            /** @description The total stored in the booking, typed by the business: it may differ from the lines plus freight. */
+            totalCents: number;
+            deposit: {
+                amountCents: number;
+                /** Format: date */
+                date: string;
+            } | null;
+            allAvailable: boolean;
+            lines: components["schemas"]["PublicQuoteLine"][];
+        };
+        PublicQuoteLine: {
+            itemName: string;
+            quantity: number;
         };
         Business: {
             /** Format: uuid */

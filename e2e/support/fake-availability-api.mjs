@@ -29,7 +29,7 @@ function withoutBusiness(item) {
 
 /**
  * Stand-in for `GET /availability` of rentals-be (contract 2d5e46d). It does not validate the period or filter by `q`
- * and it answers the same numbers for any period: what a test needs beyond the fixed pages (a filtered list, a 400)
+ * and it answers the same numbers for any period (`ids`, comma separated, keeps only those items): what a test needs beyond the fixed pages (a filtered list, a 400)
  * comes from an override. The pages are cut by `pageSize` of the fixtures, with the cursor `a-<offset>`, over the items
  * of the business in the order of the fixtures. `accessOf(req)` is the one of the session fake: the same 401, 403 and
  * 404, and every role can read it, also when the business is read only.
@@ -45,8 +45,11 @@ export function createAvailabilityApi({ accessOf }) {
       const offset = Number(
         url.searchParams.get("cursor")?.replace("a-", "") ?? 0,
       );
+      const ids = url.searchParams.get("ids")?.split(",");
       const own = FIXTURES.items.filter(
-        (item) => item.businessId === access.businessId,
+        (item) =>
+          item.businessId === access.businessId &&
+          (!ids || ids.includes(item.itemId)),
       );
       const items = own
         .slice(offset, offset + FIXTURES.pageSize)
