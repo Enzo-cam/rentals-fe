@@ -18,12 +18,18 @@ type FormProps = {
   onTargetChange: (target: SheetTarget) => void;
 };
 
-function NewCustomerForm({ onTargetChange }: FormProps) {
+function NewCustomerForm({
+  onTargetChange,
+  onCreated,
+}: FormProps & { onCreated?: (customer: Customer) => void }) {
   const create = useCreateCustomer();
   return (
     <CustomerForm
       onSubmit={(values) =>
-        create.submitOnce(createBodyOf(values), () => onTargetChange(null))
+        create.submitOnce(createBodyOf(values), (customer) => {
+          onCreated?.(customer);
+          onTargetChange(null);
+        })
       }
       onEditTaken={(customer) => onTargetChange({ mode: "edit", customer })}
       busy={create.isPending || create.isSuccess}
@@ -55,14 +61,18 @@ function EditCustomerForm({
 /**
  * The sheet over the list, for a new customer or for editing one. There is no `GET /customers/{id}`, so the edit opens
  * with the customer the row (or the 409) already carries. Each form is keyed by what it opened with, so switching to
- * another customer starts the form and its mutation again. The content is scrollable at a short screen.
+ * another customer starts the form and its mutation again. The content is scrollable at a short screen. `onCreated`
+ * hands over the customer that a new one just created (not an edited one), for the booking form to choose it
+ * (AC-3, rentals-be#29).
  */
 export function CustomerSheet({
   target,
   onTargetChange,
+  onCreated,
 }: {
   target: SheetTarget;
   onTargetChange: (target: SheetTarget) => void;
+  onCreated?: (customer: Customer) => void;
 }) {
   return (
     <Sheet
@@ -84,7 +94,10 @@ export function CustomerSheet({
         </SheetHeader>
         <div className="px-4 pb-4">
           {target?.mode === "new" && (
-            <NewCustomerForm onTargetChange={onTargetChange} />
+            <NewCustomerForm
+              onTargetChange={onTargetChange}
+              onCreated={onCreated}
+            />
           )}
           {target?.mode === "edit" && (
             <EditCustomerForm

@@ -18,6 +18,22 @@ export function getBooking(id: string) {
 }
 
 /**
+ * The active items to pick from, each with the list price that fills its line. It is a thin read of `GET /items` of its
+ * own, and the items feature does not export `useItems`, because items already imports this feature
+ * (`archive-actions`) and the cycle is an error of `no-circular` in dependency-cruiser. The cursor belongs to the `q`
+ * it came with; `limit` is never sent, so the API picks the page size.
+ * AC-1 (rentals-be#29)
+ */
+export function listActiveItems(q: string | null, cursor: string | null) {
+  const query: NonNullable<paths["/items"]["get"]["parameters"]["query"]> = {
+    status: "active",
+  };
+  if (q !== null) query.q = q;
+  if (cursor !== null) query.cursor = cursor;
+  return unwrap(browserApi.GET("/items", { params: { query } }));
+}
+
+/**
  * The four actions send no body and a JSON content type (the API refuses any other on a write), and the key of the
  * intent in `Idempotency-Key`: a repeat with the same key answers 200 with the booking as it is.
  */
