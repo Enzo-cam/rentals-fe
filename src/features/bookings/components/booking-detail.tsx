@@ -27,12 +27,26 @@ function Field({ label, value }: { label: string; value: string }) {
 }
 
 /**
+ * The day of the party and its occasion, in one text and with whichever of the two the booking has. Every role gets
+ * both, the crew included.
+ * AC-14 (rentals-be#29)
+ */
+function eventTextOf(booking: Booking): string | null {
+  const parts = [
+    booking.eventDate === null ? null : formatCalendarDate(booking.eventDate),
+    booking.occasion,
+  ].filter((part) => part !== null);
+  return parts.length === 0 ? null : parts.join(" · ");
+}
+
+/**
  * What shows depends on the fields the response carries, never on the role (INV-FE-01): the API leaves out the line
- * prices, the freight and the deposit for the roles that cannot view prices, and sends `null` for a date or a text that
- * the booking does not have. The balance is the one of the API.
+ * prices, the freight, the total and the deposit for the roles that cannot view prices, and sends `null` for a date or
+ * a text that the booking does not have. The total and the balance are the ones of the API.
  */
 function BookingBody({ booking }: { booking: Booking }) {
   const texts = BOOKING_DETAIL_TEXTS;
+  const event = eventTextOf(booking);
   return (
     <>
       <div className="flex flex-col gap-1">
@@ -77,6 +91,7 @@ function BookingBody({ booking }: { booking: Booking }) {
             value={formatDateTime(booking.cancelledAt)}
           />
         )}
+        {event !== null && <Field label={texts.event} value={event} />}
         {booking.address !== null && (
           <Field label={texts.address} value={booking.address} />
         )}
@@ -107,6 +122,7 @@ function BookingBody({ booking }: { booking: Booking }) {
             label={texts.freight}
             value={formatCents(booking.freightCents)}
           />
+          <Field label={texts.total} value={formatCents(booking.totalCents)} />
           {booking.deposit !== null && (
             <Field
               label={texts.deposit}

@@ -220,6 +220,10 @@ test("a hold with two lines, a typed total and a deposit by shortcut is saved wi
   await expect(main(page).getByText("$ 5.000 c/u")).toBeVisible();
   await expect(main(page).getByText("Copa de vino × 200")).toBeVisible();
   await expect(valueOf(page, "Flete")).toHaveText("$ 30.000");
+  await expect(valueOf(page, "Total")).toHaveText("$ 450.000");
+  await expect(valueOf(page, "Evento")).toHaveText(
+    "vie 15 mar 2030 · Casamiento",
+  );
   await expect(valueOf(page, "Seña")).toHaveText("$ 90.000 el vie 1 mar 2030");
   await expect(
     main(page).getByText("$ 360.000", { exact: true }),

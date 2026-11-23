@@ -461,7 +461,55 @@ test("a hold shows when the bloqueo expires, and no address, note or deposit mea
   await expect(valueOf(page, "Nota")).toHaveCount(0);
   await expect(valueOf(page, "Seña")).toHaveCount(0);
   await expect(valueOf(page, "Flete")).toHaveText("$ 1.000");
-  await expect(page.getByText("$ 8.000", { exact: true })).toBeVisible();
+  await expect(valueOf(page, "Total")).toHaveText("$ 8.000");
+  await expect(page.getByText("$ 8.000", { exact: true })).toHaveCount(2);
+});
+
+/** AC-14 (rentals-be#29) */
+test("the detail shows the Total when the API sends it and the Evento as the day and the occasion, whichever of the two comes, and the crew sees the Evento and no Total", async ({
+  page,
+  request,
+}) => {
+  const path = `/bookings/${BOOKING_IDS.lucia}`;
+  const party = {
+    ...confirmed,
+    eventDate: "2030-03-09",
+    occasion: "Cumpleaños",
+  };
+  async function openWith(booking: object) {
+    await overrideNext(request, {
+      method: "GET",
+      path,
+      status: 200,
+      body: booking,
+    });
+    await openItemsScreen(page, `/reservas/${BOOKING_IDS.lucia}`);
+    await expect(
+      page.getByRole("heading", { name: "Lucía Benítez" }),
+    ).toBeVisible();
+  }
+
+  await signInAsAna(page);
+  await openWith(party);
+  await expect(valueOf(page, "Total")).toHaveText("$ 18.000");
+  await expect(valueOf(page, "Evento")).toHaveText(
+    "sáb 9 mar 2030 · Cumpleaños",
+  );
+
+  await openWith({ ...party, occasion: null });
+  await expect(valueOf(page, "Evento")).toHaveText("sáb 9 mar 2030");
+  await openWith({ ...party, eventDate: null });
+  await expect(valueOf(page, "Evento")).toHaveText("Cumpleaños");
+  await openWith({ ...party, eventDate: null, occasion: null });
+  await expect(valueOf(page, "Evento")).toHaveCount(0);
+  await expect(valueOf(page, "Total")).toHaveText("$ 18.000");
+
+  await signInThroughProxy(page, USERS.beto.email, USERS.beto.password);
+  await openWith(withoutPrices(party));
+  await expect(valueOf(page, "Evento")).toHaveText(
+    "sáb 9 mar 2030 · Cumpleaños",
+  );
+  await expect(valueOf(page, "Total")).toHaveCount(0);
 });
 
 /** AC-10 */
